@@ -57,3 +57,18 @@ function uploadExcel() {
     reader.readAsArrayBuffer(file);
 
 }
+function updateDashboard(){
+
+document.getElementById("totalSales").innerHTML =
+salesData.reduce((a,b)=>a+Number(b.amount),0).toLocaleString();
+
+document.getElementById("totalQty").innerHTML =
+salesData.reduce((a,b)=>a+Number(b.qty),0);
+
+document.getElementById("totalCustomers").innerHTML =
+new Set(salesData.map(x=>x.customer)).size;
+
+document.getElementById("totalProducts").innerHTML =
+new Set(salesData.map(x=>x.product)).size;
+
+}
