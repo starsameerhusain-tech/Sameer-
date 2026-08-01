@@ -1,5 +1,6 @@
 // ==========================================
 // Sales Management System - Position-Based Fix
+// With Automatic Data Persistence (localStorage)
 // ==========================================
 
 let salesData = [];
@@ -82,6 +83,9 @@ function uploadExcel() {
                     projectCode: String(row[9] || "").trim() // Col J (Index 9)
                 });
             }
+
+            // Save the data to browser memory before loading UI
+            localStorage.setItem("savedSalesData", JSON.stringify(salesData));
 
             loadTable(salesData);
             updateDashboard();
@@ -214,6 +218,25 @@ function downloadExcel() {
 // 6. Automatic Initialization & Key Listeners
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+    // CHECK FOR PREVIOUSLY SAVED DATA
+    const rawSavedData = localStorage.getItem("savedSalesData");
+    if (rawSavedData) {
+        try {
+            salesData = JSON.parse(rawSavedData);
+            
+            // Re-render table elements automatically
+            loadTable(salesData);
+            
+            // Set success notification for saved numbers
+            const statusEl = document.getElementById("uploadStatus");
+            if (statusEl) {
+                statusEl.innerHTML = "🔄 Loaded " + salesData.length + " records from browser memory.";
+            }
+        } catch (e) {
+            console.error("Failed to load historical cache:", e);
+        }
+    }
+
     const nameInput = document.getElementById("customerSearch");
     const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
@@ -222,5 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (emailInput) emailInput.addEventListener("input", searchData);
     if (monthInput) monthInput.addEventListener("input", searchData);
 
+    // Refresh the top dashboard numbers card layout
     updateDashboard();
 });
