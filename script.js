@@ -4,15 +4,6 @@
 
 let salesData = [];
 
-// Helper function to convert Excel date numbers (e.g., 46024) to formatted dates
-function formatExcelDate(excelDate) {
-    if (typeof excelDate === "number") {
-        const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
-        return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD
-    }
-    return excelDate || "";
-}
-
 // ------------------------------------------
 // 1. Upload & Parse Excel File
 // ------------------------------------------
@@ -34,14 +25,14 @@ function uploadExcel() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            // Safe number parser (handles formatted numbers like "$1,200")
+            // Number parser helper
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Map and normalize rows regardless of header case or spaces
+            // Map and normalize exact headers matching your new Excel file
             salesData = jsonData.map(r => {
                 const getVal = (key) => {
                     const k = Object.keys(r).find(k => k.trim().toLowerCase() === key.toLowerCase());
@@ -49,14 +40,18 @@ function uploadExcel() {
                 };
 
                 return {
-                    date: formatExcelDate(getVal("Date")),
                     month: String(getVal("Month")).trim(),
-                    customer: String(getVal("Customer")).trim(),
-                    product: String(getVal("Product")).trim(),
-                    qty: parseNum(getVal("Qty")),
-                    amount: parseNum(getVal("Amount"))
+                    projectName: String(getVal("Project Name")).trim(),
+                    email: String(getVal("Email ID")).trim(),
+                    name: String(getVal("Name")).trim(),
+                    source: String(getVal("Source")).trim(),
+                    language: String(getVal("Language")).trim(),
+                    rate: parseNum(getVal("Rate")),
+                    hours: parseNum(getVal("Hours")),
+                    amount: parseNum(getVal("Amount")),
+                    projectCode: String(getVal("Project Code")).trim()
                 };
-            }).filter(item => item.customer || item.product || item.amount);
+            }).filter(item => item.name || item.projectName || item.email || item.amount);
 
             loadTable(salesData);
             updateDashboard();
@@ -82,7 +77,7 @@ function loadTable(data) {
     if (!tbody) return;
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6' class='text-center'>No Data Available</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='10' class='text-center'>No Data Available</td></tr>";
         return;
     }
 
@@ -90,12 +85,16 @@ function loadTable(data) {
     data.forEach(r => {
         html += `
         <tr>
-            <td>${r.date}</td>
             <td>${r.month}</td>
-            <td>${r.customer}</td>
-            <td>${r.product}</td>
-            <td>${r.qty}</td>
+            <td>${r.projectName}</td>
+            <td>${r.email}</td>
+            <td>${r.name}</td>
+            <td>${r.source}</td>
+            <td>${r.language}</td>
+            <td>${r.rate}</td>
+            <td>${r.hours}</td>
             <td>${r.amount}</td>
+            <td>${r.projectCode}</td>
         </tr>`;
     });
 
@@ -112,40 +111,43 @@ function updateDashboard() {
     };
 
     const totalSales = salesData.reduce((a, b) => a + (b.amount || 0), 0);
-    const totalQty = salesData.reduce((a, b) => a + (b.qty || 0), 0);
-    const uniqueCustomers = new Set(salesData.map(x => x.customer).filter(Boolean)).size;
-    const uniqueProducts = new Set(salesData.map(x => x.product).filter(Boolean)).size;
+    const totalHours = salesData.reduce((a, b) => a + (b.hours || 0), 0);
+    const avgRate = salesData.length > 0 
+        ? Math.round(salesData.reduce((a, b) => a + (b.rate || 0), 0) / salesData.length) 
+        : 0;
 
     setSafeText("totalSales", totalSales.toLocaleString());
-    setSafeText("totalQty", totalQty.toLocaleString());
-    setSafeText("totalCustomers", uniqueCustomers);
-    setSafeText("totalProducts", uniqueProducts);
+    setSafeText("totalCustomers", salesData.length); // Total Records
+    setSafeText("totalProducts", totalHours.toLocaleString()); // Total Hours
+    setSafeText("totalQty", avgRate); // Avg Rate
 }
 
 // ------------------------------------------
-// 4. Live Search Function (Supports Initial Letters)
+// 4. Live Search (Name, Email ID, & Month)
 // ------------------------------------------
 function searchData(e) {
-    // If search is triggered inside a form submit, prevent browser reload
     if (e && e.preventDefault) {
         e.preventDefault();
     }
 
-    const customerInput = document.getElementById("customerSearch");
+    const nameInput = document.getElementById("customerSearch");
+    const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
 
-    const customerQuery = customerInput ? customerInput.value.trim().toLowerCase() : "";
+    const nameQuery = nameInput ? nameInput.value.trim().toLowerCase() : "";
+    const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
     const filtered = salesData.filter(item => {
-        const custVal = item.customer.toLowerCase();
+        const nameVal = item.name.toLowerCase();
+        const emailVal = item.email.toLowerCase();
         const monthVal = item.month.toLowerCase();
 
-        // Matches initial letters or partial names
-        const matchesCustomer = !customerQuery || custVal.includes(customerQuery);
+        const matchesName = !nameQuery || nameVal.includes(nameQuery);
+        const matchesEmail = !emailQuery || emailVal.includes(emailQuery);
         const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
 
-        return matchesCustomer && matchesMonth;
+        return matchesName && matchesEmail && matchesMonth;
     });
 
     loadTable(filtered);
@@ -160,9 +162,9 @@ function downloadCSV() {
         return;
     }
 
-    let csv = "Date,Month,Customer,Product,Qty,Amount\n";
+    let csv = "Month,Project Name,Email ID,Name,Source,Language,Rate,Hours,Amount,Project Code\n";
     salesData.forEach(r => {
-        csv += `"${r.date}","${r.month}","${r.customer}","${r.product}",${r.qty},${r.amount}\n`;
+        csv += `"${r.month}","${r.projectName}","${r.email}","${r.name}","${r.source}","${r.language}",${r.rate},${r.hours},${r.amount},"${r.projectCode}"\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -182,18 +184,13 @@ function downloadExcel() {
 // 6. Automatic Initialization & Key Listeners
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-    const customerInput = document.getElementById("customerSearch");
+    const nameInput = document.getElementById("customerSearch");
+    const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
 
-    // Live filtering as user types initial letters
-    if (customerInput) {
-        customerInput.addEventListener("input", searchData);
-        customerInput.addEventListener("keyup", searchData);
-    }
-    if (monthInput) {
-        monthInput.addEventListener("input", searchData);
-        monthInput.addEventListener("keyup", searchData);
-    }
+    if (nameInput) nameInput.addEventListener("input", searchData);
+    if (emailInput) emailInput.addEventListener("input", searchData);
+    if (monthInput) monthInput.addEventListener("input", searchData);
 
     updateDashboard();
 });
