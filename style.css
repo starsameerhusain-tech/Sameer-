@@ -1,3 +1,179 @@
-body{
-    font-family:Arial;
+// =========================================
+// Sales Management System
+// Version 1.0
+// script.js
+// =========================================
+
+let salesData = [];
+
+// ----------------------------
+// Upload Button
+// ----------------------------
+function uploadExcel() {
+
+    const file = document.getElementById("excelFile").files[0];
+
+    if (!file) {
+        alert("Please select an Excel file.");
+        return;
+    }
+
+    document.getElementById("uploadStatus").innerHTML =
+        "✅ Selected File : <b>" + file.name + "</b><br><br>" +
+        "🚀 Excel Upload functionality will be added in Version 2.";
+
 }
+
+// ----------------------------
+// Search
+// ----------------------------
+function searchData() {
+
+    const customer =
+        document.getElementById("customerSearch")
+        .value
+        .toLowerCase();
+
+    const month =
+        document.getElementById("monthSearch")
+        .value
+        .toLowerCase();
+
+    if (salesData.length === 0) {
+
+        alert("No sales data available.");
+
+        return;
+
+    }
+
+    let filtered = salesData.filter(row => {
+
+        let customerMatch =
+            row.customer.toLowerCase().includes(customer);
+
+        let monthMatch =
+            row.month.toLowerCase().includes(month);
+
+        return customerMatch && monthMatch;
+
+    });
+
+    loadTable(filtered);
+
+}
+
+// ----------------------------
+// Load Table
+// ----------------------------
+function loadTable(data) {
+
+    let tbody =
+        document.getElementById("salesTable");
+
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+
+        tbody.innerHTML =
+            "<tr><td colspan='6' class='text-center'>No Records Found</td></tr>";
+
+        return;
+
+    }
+
+    data.forEach(row => {
+
+        tbody.innerHTML +=
+        `
+        <tr>
+
+            <td>${row.date}</td>
+
+            <td>${row.month}</td>
+
+            <td>${row.customer}</td>
+
+            <td>${row.product}</td>
+
+            <td>${row.qty}</td>
+
+            <td>${row.amount}</td>
+
+        </tr>
+        `;
+
+    });
+
+}
+
+// ----------------------------
+// Download Excel
+// ----------------------------
+function downloadExcel() {
+
+    alert("Excel download will be added in Version 4.");
+
+}
+
+// ----------------------------
+// Download CSV
+// ----------------------------
+function downloadCSV() {
+
+    alert("CSV download will be added in Version 4.");
+
+}
+
+// ----------------------------
+// Sample Dashboard Data
+// ----------------------------
+
+salesData = [
+
+{
+date:"01-Jul-2026",
+month:"July",
+customer:"ABC Traders",
+product:"Laptop",
+qty:10,
+amount:500000
+},
+
+{
+date:"02-Jul-2026",
+month:"July",
+customer:"XYZ Pvt Ltd",
+product:"Mouse",
+qty:25,
+amount:15000
+},
+
+{
+date:"03-Jul-2026",
+month:"July",
+customer:"A-One Store",
+product:"Keyboard",
+qty:12,
+amount:18000
+}
+
+];
+
+// ----------------------------
+// Dashboard
+// ----------------------------
+
+document.getElementById("totalSales").innerHTML =
+salesData.reduce((a,b)=>a+Number(b.amount),0).toLocaleString();
+
+document.getElementById("totalQty").innerHTML =
+salesData.reduce((a,b)=>a+Number(b.qty),0);
+
+document.getElementById("totalCustomers").innerHTML =
+new Set(salesData.map(x=>x.customer)).size;
+
+document.getElementById("totalProducts").innerHTML =
+new Set(salesData.map(x=>x.product)).size;
+
+loadTable(salesData);
