@@ -1,8 +1,17 @@
 // ==========================================
-// Sales Management System - Full Script
+// Sales Management System - Complete Script
 // ==========================================
 
 let salesData = [];
+
+// Helper function to convert Excel date numbers (e.g., 46024) to formatted dates
+function formatExcelDate(excelDate) {
+    if (typeof excelDate === "number") {
+        const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+        return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD
+    }
+    return excelDate || "";
+}
 
 // ------------------------------------------
 // 1. Upload & Parse Excel File
@@ -25,14 +34,14 @@ function uploadExcel() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            // Safe number parser (handles currency strings like "$1,200")
+            // Safe number parser (handles formatted numbers like "$1,200")
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Map and normalize rows regardless of header casing or spaces
+            // Map and normalize rows regardless of header case or spaces
             salesData = jsonData.map(r => {
                 const getVal = (key) => {
                     const k = Object.keys(r).find(k => k.trim().toLowerCase() === key.toLowerCase());
@@ -40,14 +49,14 @@ function uploadExcel() {
                 };
 
                 return {
-                    date: getVal("Date"),
-                    month: getVal("Month"),
-                    customer: getVal("Customer"),
-                    product: getVal("Product"),
+                    date: formatExcelDate(getVal("Date")),
+                    month: String(getVal("Month")).trim(),
+                    customer: String(getVal("Customer")).trim(),
+                    product: String(getVal("Product")).trim(),
                     qty: parseNum(getVal("Qty")),
                     amount: parseNum(getVal("Amount"))
                 };
-            }).filter(item => item.customer || item.product || item.amount); // Clean out empty rows
+            }).filter(item => item.customer || item.product || item.amount);
 
             loadTable(salesData);
             updateDashboard();
@@ -94,7 +103,7 @@ function loadTable(data) {
 }
 
 // ------------------------------------------
-// 3. Update Summary Cards / Dashboard
+// 3. Update Dashboard Cards
 // ------------------------------------------
 function updateDashboard() {
     const setSafeText = (id, text) => {
@@ -114,9 +123,14 @@ function updateDashboard() {
 }
 
 // ------------------------------------------
-// 4. Dynamic Live Search (Matches Initials & Substrings)
+// 4. Live Search Function (Supports Initial Letters)
 // ------------------------------------------
-function searchData() {
+function searchData(e) {
+    // If search is triggered inside a form submit, prevent browser reload
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
+
     const customerInput = document.getElementById("customerSearch");
     const monthInput = document.getElementById("monthSearch");
 
@@ -124,10 +138,10 @@ function searchData() {
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
     const filtered = salesData.filter(item => {
-        const custVal = String(item.customer || "").toLowerCase();
-        const monthVal = String(item.month || "").toLowerCase();
+        const custVal = item.customer.toLowerCase();
+        const monthVal = item.month.toLowerCase();
 
-        // Checks if string starts with OR contains query
+        // Matches initial letters or partial names
         const matchesCustomer = !customerQuery || custVal.includes(customerQuery);
         const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
 
@@ -165,13 +179,13 @@ function downloadExcel() {
 }
 
 // ------------------------------------------
-// 6. Automatic Event Binding & Initialization
+// 6. Automatic Initialization & Key Listeners
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const customerInput = document.getElementById("customerSearch");
     const monthInput = document.getElementById("monthSearch");
 
-    // Live search as you type
+    // Live filtering as user types initial letters
     if (customerInput) {
         customerInput.addEventListener("input", searchData);
         customerInput.addEventListener("keyup", searchData);
@@ -181,6 +195,5 @@ document.addEventListener("DOMContentLoaded", () => {
         monthInput.addEventListener("keyup", searchData);
     }
 
-    // Initial blank state setup
     updateDashboard();
 });
