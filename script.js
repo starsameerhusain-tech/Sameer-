@@ -1,5 +1,8 @@
 let salesData = [];
 
+// =========================
+// 1. Upload & Parse Excel
+// =========================
 function uploadExcel() {
     const fileInput = document.getElementById("excelFile");
     const file = fileInput ? fileInput.files[0] : null;
@@ -38,7 +41,7 @@ function uploadExcel() {
                     qty: parseNum(getVal("Qty")),
                     amount: parseNum(getVal("Amount"))
                 };
-            }).filter(item => item.customer || item.product || item.amount); // Filter empty rows
+            }).filter(item => item.customer || item.product || item.amount);
 
             loadTable(salesData);
             updateDashboard();
@@ -56,6 +59,9 @@ function uploadExcel() {
     reader.readAsArrayBuffer(file);
 }
 
+// =========================
+// 2. Load Table
+// =========================
 function loadTable(data) {
     const tbody = document.getElementById("salesTable");
     if (!tbody) return;
@@ -81,6 +87,9 @@ function loadTable(data) {
     tbody.innerHTML = html;
 }
 
+// =========================
+// 3. Update Dashboard
+// =========================
 function updateDashboard() {
     const setSafeText = (id, text) => {
         const el = document.getElementById(id);
@@ -98,5 +107,32 @@ function updateDashboard() {
     setSafeText("totalProducts", uniqueProducts);
 }
 
-// Initial call
+// =========================
+// 4. Dynamic Search Function
+// =========================
+function searchData() {
+    const customerQuery = (document.getElementById("customerSearch")?.value || "").trim().toLowerCase();
+    const monthQuery = (document.getElementById("monthSearch")?.value || "").trim().toLowerCase();
+
+    const filtered = salesData.filter(item => {
+        // Checks if customer/month starts with the typed letters
+        const customerMatch = !customerQuery || item.customer.toLowerCase().startsWith(customerQuery);
+        const monthMatch = !monthQuery || item.month.toLowerCase().startsWith(monthQuery);
+
+        return customerMatch && monthMatch;
+    });
+
+    loadTable(filtered);
+}
+
+// Live typing event listeners
+document.addEventListener("DOMContentLoaded", () => {
+    const customerInput = document.getElementById("customerSearch");
+    const monthInput = document.getElementById("monthSearch");
+
+    if (customerInput) customerInput.addEventListener("input", searchData);
+    if (monthInput) monthInput.addEventListener("input", searchData);
+});
+
+// Initial Dashboard Load
 updateDashboard();
