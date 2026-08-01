@@ -23,35 +23,70 @@ function uploadExcel() {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: "array" });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            // Number parser helper
+            // Parse raw array of rows to reliably detect the header row
+            const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+            if (!rawRows || rawRows.length === 0) {
+                alert("Excel file appears to be empty.");
+                return;
+            }
+
+            // Find header row index (looking for "Month", "Name", or "Project Name")
+            let headerIndex = 0;
+            for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+                const rowStr = rawRows[i].map(c => String(c).toLowerCase()).join(" ");
+                if (rowStr.includes("month") || rowStr.includes("project") || rowStr.includes("email")) {
+                    headerIndex = i;
+                    break;
+                }
+            }
+
+            // Extract headers and clean whitespace
+            const headers = rawRows[headerIndex].map(h => String(h).replace(/[\r\n]+/g, " ").trim());
+
+            // Helper to clean numeric values (currency, spaces, symbols)
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Map and normalize exact headers matching your new Excel file
-            salesData = jsonData.map(r => {
-                const getVal = (key) => {
-                    const k = Object.keys(r).find(k => k.trim().toLowerCase() === key.toLowerCase());
-                    return k ? r[k] : "";
+            // Helper to get value matching multiple possible column names
+            const getVal = (row, possibleKeys) => {
+                for (let key of possibleKeys) {
+                    const colIdx = headers.findIndex(h => h.toLowerCase() === key.toLowerCase());
+                    if (colIdx !== -1 && row[colIdx] !== undefined) {
+                        return row[colIdx];
+                    }
+                }
+                return "";
+            };
+
+            // Map data rows starting after the header index
+            salesData = [];
+            for (let i = headerIndex + 1; i < rawRows.length; i++) {
+                const row = rawRows[i];
+                if (!row || row.length === 0) continue;
+
+                const record = {
+                    month: String(getVal(row, ["Month"])).trim(),
+                    projectName: String(getVal(row, ["Project Name", "Project"])).trim(),
+                    email: String(getVal(row, ["Email ID", "Email", "Email Address"])).trim(),
+                    name: String(getVal(row, ["Name", "Customer Name", "Customer"])).trim(),
+                    source: String(getVal(row, ["Source"])).trim(),
+                    language: String(getVal(row, ["Language"])).trim(),
+                    rate: parseNum(getVal(row, ["Rate"])),
+                    hours: parseNum(getVal(row, ["Hours", "Qty"])),
+                    amount: parseNum(getVal(row, ["Amount", "Total Amount"])),
+                    projectCode: String(getVal(row, ["Project Code", "Code"])).trim()
                 };
 
-                return {
-                    month: String(getVal("Month")).trim(),
-                    projectName: String(getVal("Project Name")).trim(),
-                    email: String(getVal("Email ID")).trim(),
-                    name: String(getVal("Name")).trim(),
-                    source: String(getVal("Source")).trim(),
-                    language: String(getVal("Language")).trim(),
-                    rate: parseNum(getVal("Rate")),
-                    hours: parseNum(getVal("Hours")),
-                    amount: parseNum(getVal("Amount")),
-                    projectCode: String(getVal("Project Code")).trim()
-                };
-            }).filter(item => item.name || item.projectName || item.email || item.amount);
+                // Keep row if at least one key field contains data
+                if (record.month || record.projectName || record.email || record.name || record.amount) {
+                    salesData.push(record);
+                }
+            }
 
             loadTable(salesData);
             updateDashboard();
@@ -154,7 +189,7 @@ function searchData(e) {
 }
 
 // ------------------------------------------
-// 5. Download CSV
+// 5. Download CSV & Excel
 // ------------------------------------------
 function downloadCSV() {
     if (salesData.length === 0) {
