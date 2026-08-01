@@ -1,8 +1,12 @@
+// ==========================================
+// Sales Management System - Full Script
+// ==========================================
+
 let salesData = [];
 
-// =========================
-// 1. Upload & Parse Excel
-// =========================
+// ------------------------------------------
+// 1. Upload & Parse Excel File
+// ------------------------------------------
 function uploadExcel() {
     const fileInput = document.getElementById("excelFile");
     const file = fileInput ? fileInput.files[0] : null;
@@ -21,12 +25,14 @@ function uploadExcel() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
+            // Safe number parser (handles currency strings like "$1,200")
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
+            // Map and normalize rows regardless of header casing or spaces
             salesData = jsonData.map(r => {
                 const getVal = (key) => {
                     const k = Object.keys(r).find(k => k.trim().toLowerCase() === key.toLowerCase());
@@ -41,7 +47,7 @@ function uploadExcel() {
                     qty: parseNum(getVal("Qty")),
                     amount: parseNum(getVal("Amount"))
                 };
-            }).filter(item => item.customer || item.product || item.amount);
+            }).filter(item => item.customer || item.product || item.amount); // Clean out empty rows
 
             loadTable(salesData);
             updateDashboard();
@@ -52,16 +58,16 @@ function uploadExcel() {
             }
         } catch (err) {
             console.error("Error parsing Excel:", err);
-            alert("Error reading file. Please check console for details.");
+            alert("Error reading file. Please check console (F12) for details.");
         }
     };
 
     reader.readAsArrayBuffer(file);
 }
 
-// =========================
-// 2. Load Table
-// =========================
+// ------------------------------------------
+// 2. Render Table Rows
+// ------------------------------------------
 function loadTable(data) {
     const tbody = document.getElementById("salesTable");
     if (!tbody) return;
@@ -87,9 +93,9 @@ function loadTable(data) {
     tbody.innerHTML = html;
 }
 
-// =========================
-// 3. Update Dashboard
-// =========================
+// ------------------------------------------
+// 3. Update Summary Cards / Dashboard
+// ------------------------------------------
 function updateDashboard() {
     const setSafeText = (id, text) => {
         const el = document.getElementById(id);
@@ -107,32 +113,74 @@ function updateDashboard() {
     setSafeText("totalProducts", uniqueProducts);
 }
 
-// =========================
-// 4. Dynamic Search Function
-// =========================
+// ------------------------------------------
+// 4. Dynamic Live Search (Matches Initials & Substrings)
+// ------------------------------------------
 function searchData() {
-    const customerQuery = (document.getElementById("customerSearch")?.value || "").trim().toLowerCase();
-    const monthQuery = (document.getElementById("monthSearch")?.value || "").trim().toLowerCase();
+    const customerInput = document.getElementById("customerSearch");
+    const monthInput = document.getElementById("monthSearch");
+
+    const customerQuery = customerInput ? customerInput.value.trim().toLowerCase() : "";
+    const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
     const filtered = salesData.filter(item => {
-        // Checks if customer/month starts with the typed letters
-        const customerMatch = !customerQuery || item.customer.toLowerCase().startsWith(customerQuery);
-        const monthMatch = !monthQuery || item.month.toLowerCase().startsWith(monthQuery);
+        const custVal = String(item.customer || "").toLowerCase();
+        const monthVal = String(item.month || "").toLowerCase();
 
-        return customerMatch && monthMatch;
+        // Checks if string starts with OR contains query
+        const matchesCustomer = !customerQuery || custVal.includes(customerQuery);
+        const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
+
+        return matchesCustomer && matchesMonth;
     });
 
     loadTable(filtered);
 }
 
-// Live typing event listeners
+// ------------------------------------------
+// 5. Download CSV
+// ------------------------------------------
+function downloadCSV() {
+    if (salesData.length === 0) {
+        alert("No data available to download.");
+        return;
+    }
+
+    let csv = "Date,Month,Customer,Product,Qty,Amount\n";
+    salesData.forEach(r => {
+        csv += `"${r.date}","${r.month}","${r.customer}","${r.product}",${r.qty},${r.amount}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "SalesData.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function downloadExcel() {
+    alert("Excel download feature coming soon!");
+}
+
+// ------------------------------------------
+// 6. Automatic Event Binding & Initialization
+// ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const customerInput = document.getElementById("customerSearch");
     const monthInput = document.getElementById("monthSearch");
 
-    if (customerInput) customerInput.addEventListener("input", searchData);
-    if (monthInput) monthInput.addEventListener("input", searchData);
-});
+    // Live search as you type
+    if (customerInput) {
+        customerInput.addEventListener("input", searchData);
+        customerInput.addEventListener("keyup", searchData);
+    }
+    if (monthInput) {
+        monthInput.addEventListener("input", searchData);
+        monthInput.addEventListener("keyup", searchData);
+    }
 
-// Initial Dashboard Load
-updateDashboard();
+    // Initial blank state setup
+    updateDashboard();
+});
