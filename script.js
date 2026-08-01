@@ -1,160 +1,59 @@
-/* ===========================
-   Sales Management System
-   style.css
-=========================== */
+function uploadExcel() {
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+    const file = document.getElementById("excelFile").files[0];
 
-body{
-    background:#f4f7fb;
-    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
-}
+    if (!file) {
+        alert("Please select an Excel file.");
+        return;
+    }
 
-.navbar{
-    height:65px;
-}
+    const reader = new FileReader();
 
-.card{
-    border:none;
-    border-radius:12px;
-    transition:.3s;
-}
+    reader.onload = function (e) {
 
-.card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 20px rgba(0,0,0,.15);
-}
+        const data = new Uint8Array(e.target.result);
 
-.card-header{
-    font-weight:600;
-    font-size:18px;
-}
+        const workbook = XLSX.read(data, {
+            type: "array"
+        });
 
-.list-group-item{
-    padding:15px;
-    font-size:16px;
-}
+        const firstSheet = workbook.SheetNames[0];
 
-.list-group-item.active{
-    background:#0d6efd;
-    border:none;
-}
+        const worksheet = workbook.Sheets[firstSheet];
 
-.list-group-item:hover{
-    background:#eef5ff;
-    cursor:pointer;
-}
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-h3{
-    font-weight:bold;
-}
+        salesData = [];
 
-input[type=text]{
-    height:45px;
-}
+        jsonData.forEach(row => {
 
-input[type=file]{
-    height:45px;
-}
+            salesData.push({
 
-.btn{
-    height:45px;
-    font-weight:600;
-    border-radius:8px;
-}
+                date: row.Date || "",
 
-.btn:hover{
-    transform:scale(1.02);
-}
+                month: row.Month || "",
 
-.table{
-    margin:0;
-}
+                customer: row.Customer || "",
 
-.table th{
-    text-align:center;
-    vertical-align:middle;
-}
+                product: row.Product || "",
 
-.table td{
-    vertical-align:middle;
-}
+                qty: row.Qty || 0,
 
-.table tbody tr:hover{
-    background:#f8fbff;
-}
+                amount: row.Amount || 0
 
-#uploadStatus{
-    font-size:17px;
-}
+            });
 
-.footer{
-    text-align:center;
-    color:#777;
-    margin-top:30px;
-}
+        });
 
-.dashboard-card{
-    color:#fff;
-    border-radius:12px;
-}
+        loadTable(salesData);
 
-.sales-card{
-    background:#0d6efd;
-}
+        document.getElementById("uploadStatus").innerHTML =
+            "✅ " + salesData.length + " records loaded successfully.";
 
-.customer-card{
-    background:#198754;
-}
+        updateDashboard();
 
-.product-card{
-    background:#fd7e14;
-}
+    };
 
-.qty-card{
-    background:#6f42c1;
-}
-
-@media(max-width:992px){
-
-.col-md-3{
-    margin-bottom:15px;
-}
-
-}
-
-@media(max-width:768px){
-
-.navbar-brand{
-    font-size:18px;
-}
-
-.card-header{
-    font-size:16px;
-}
-
-h3{
-    font-size:24px;
-}
-
-.btn{
-    margin-top:10px;
-}
-
-}
-
-@media(max-width:576px){
-
-.container-fluid{
-    padding:15px;
-}
-
-table{
-    font-size:13px;
-}
+    reader.readAsArrayBuffer(file);
 
 }
