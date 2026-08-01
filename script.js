@@ -1,5 +1,5 @@
 // ==========================================
-// Sales Management System - Complete Script
+// Sales Management System - Position-Based Fix
 // ==========================================
 
 let salesData = [];
@@ -24,7 +24,7 @@ function uploadExcel() {
             const workbook = XLSX.read(data, { type: "array" });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-            // Parse raw array of rows to reliably detect the header row
+            // Read sheet strictly as 2D array matrix [[row1], [row2], ...]
             const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
             if (!rawRows || rawRows.length === 0) {
@@ -32,60 +32,55 @@ function uploadExcel() {
                 return;
             }
 
-            // Find header row index (looking for "Month", "Name", or "Project Name")
-            let headerIndex = 0;
-            for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
-                const rowStr = rawRows[i].map(c => String(c).toLowerCase()).join(" ");
-                if (rowStr.includes("month") || rowStr.includes("project") || rowStr.includes("email")) {
-                    headerIndex = i;
-                    break;
-                }
-            }
-
-            // Extract headers and clean whitespace
-            const headers = rawRows[headerIndex].map(h => String(h).replace(/[\r\n]+/g, " ").trim());
-
-            // Helper to clean numeric values (currency, spaces, symbols)
+            // Number parser helper
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Helper to get value matching multiple possible column names
-            const getVal = (row, possibleKeys) => {
-                for (let key of possibleKeys) {
-                    const colIdx = headers.findIndex(h => h.toLowerCase() === key.toLowerCase());
-                    if (colIdx !== -1 && row[colIdx] !== undefined) {
-                        return row[colIdx];
-                    }
+            // Find the exact row index where data starts (Row containing 'January' or data)
+            let startRowIndex = -1;
+            for (let i = 0; i < rawRows.length; i++) {
+                const firstColValue = String(rawRows[i][0] || "").trim().toLowerCase();
+                // Skip header row ("month") and find actual month data
+                if (firstColValue && firstColValue !== "month") {
+                    startRowIndex = i;
+                    break;
                 }
-                return "";
-            };
+            }
 
-            // Map data rows starting after the header index
+            if (startRowIndex === -1) {
+                // Fallback: If no "Month" header was found, assume row 1 is data (index 1)
+                startRowIndex = 1;
+            }
+
             salesData = [];
-            for (let i = headerIndex + 1; i < rawRows.length; i++) {
+
+            // Extract strictly by position (Column A = 0, B = 1, C = 2, etc.)
+            for (let i = startRowIndex; i < rawRows.length; i++) {
                 const row = rawRows[i];
                 if (!row || row.length === 0) continue;
 
-                const record = {
-                    month: String(getVal(row, ["Month"])).trim(),
-                    projectName: String(getVal(row, ["Project Name", "Project"])).trim(),
-                    email: String(getVal(row, ["Email ID", "Email", "Email Address"])).trim(),
-                    name: String(getVal(row, ["Name", "Customer Name", "Customer"])).trim(),
-                    source: String(getVal(row, ["Source"])).trim(),
-                    language: String(getVal(row, ["Language"])).trim(),
-                    rate: parseNum(getVal(row, ["Rate"])),
-                    hours: parseNum(getVal(row, ["Hours", "Qty"])),
-                    amount: parseNum(getVal(row, ["Amount", "Total Amount"])),
-                    projectCode: String(getVal(row, ["Project Code", "Code"])).trim()
-                };
+                const monthVal = String(row[0] || "").trim();
+                const projVal  = String(row[1] || "").trim();
+                const emailVal = String(row[2] || "").trim();
 
-                // Keep row if at least one key field contains data
-                if (record.month || record.projectName || record.email || record.name || record.amount) {
-                    salesData.push(record);
-                }
+                // Stop or skip if the row is completely empty
+                if (!monthVal && !projVal && !emailVal) continue;
+
+                salesData.push({
+                    month:       monthVal,                   // Col A (Index 0)
+                    projectName: projVal,                    // Col B (Index 1)
+                    email:       emailVal,                   // Col C (Index 2)
+                    name:        String(row[3] || "").trim(),// Col D (Index 3)
+                    source:      String(row[4] || "").trim(),// Col E (Index 4)
+                    language:    String(row[5] || "").trim(),// Col F (Index 5)
+                    rate:        parseNum(row[6]),           // Col G (Index 6)
+                    hours:       parseNum(row[7]),           // Col H (Index 7)
+                    amount:      parseNum(row[8]),           // Col I (Index 8)
+                    projectCode: String(row[9] || "").trim() // Col J (Index 9)
+                });
             }
 
             loadTable(salesData);
@@ -189,7 +184,7 @@ function searchData(e) {
 }
 
 // ------------------------------------------
-// 5. Download CSV & Excel
+// 5. Download CSV
 // ------------------------------------------
 function downloadCSV() {
     if (salesData.length === 0) {
