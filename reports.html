@@ -68,7 +68,7 @@
             box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
         }
 
-        /* Compact KPI Cards matching Screenshot */
+        /* Compact KPI Cards */
         .kpi-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -84,7 +84,6 @@
             box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
         }
 
-        /* Top Color Accent Borders */
         .kpi-card-blue { border-top: 4px solid #2563eb; }
         .kpi-card-green { border-top: 4px solid #10b981; }
         .kpi-card-purple { border-top: 4px solid #8b5cf6; }
@@ -122,17 +121,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        .panel-header-blue {
+        .panel-header-slate {
             background-color: #1e293b;
-            color: #ffffff;
-            padding: 14px 20px;
-            border-top-left-radius: calc(var(--card-radius) - 1px);
-            border-top-right-radius: calc(var(--card-radius) - 1px);
-            font-weight: 700;
-        }
-
-        .panel-header-teal {
-            background-color: #0f172a;
             color: #ffffff;
             padding: 14px 20px;
             border-top-left-radius: calc(var(--card-radius) - 1px);
@@ -282,11 +272,11 @@
                     </div>
                 </div>
 
-                <!-- Chart Visualizations Row -->
+                <!-- Row 1: Primary Charts -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <div class="card panel-card h-100 overflow-hidden">
-                            <div class="panel-header-blue d-flex align-items-center gap-2">
+                            <div class="panel-header-slate d-flex align-items-center gap-2">
                                 <i class="fa-solid fa-chart-column text-info"></i> Monthly Revenue ($)
                             </div>
                             <div class="card-body p-4 bg-white">
@@ -297,7 +287,7 @@
 
                     <div class="col-md-6">
                         <div class="card panel-card h-100 overflow-hidden">
-                            <div class="panel-header-teal d-flex align-items-center gap-2">
+                            <div class="panel-header-slate d-flex align-items-center gap-2">
                                 <i class="fa-solid fa-chart-line text-info"></i> Total Hours Worked
                             </div>
                             <div class="card-body p-4 bg-white">
@@ -307,9 +297,34 @@
                     </div>
                 </div>
 
+                <!-- Row 2: NEW Visualizations (Lead Source & Top Projects) -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card panel-card h-100 overflow-hidden">
+                            <div class="panel-header-slate d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-info"></i> Revenue by Lead Source
+                            </div>
+                            <div class="card-body p-4 bg-white d-flex align-items-center justify-content-center">
+                                <canvas id="sourceChart" style="max-height: 250px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card panel-card h-100 overflow-hidden">
+                            <div class="panel-header-slate d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-diagram-project text-info"></i> Top 5 Projects by Revenue ($)
+                            </div>
+                            <div class="card-body p-4 bg-white">
+                                <canvas id="projectChart" style="max-height: 250px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Month-Wise Sales Report Table -->
                 <div class="card panel-card overflow-hidden mb-5">
-                    <div class="panel-header-blue d-flex justify-content-between align-items-center">
+                    <div class="panel-header-slate d-flex justify-content-between align-items-center">
                         <span class="fs-6"><i class="fa-solid fa-calendar-days text-info me-2"></i> Month-Wise Sales Report</span>
                         <button class="btn btn-excel btn-sm shadow-sm" onclick="exportReportToExcel()">
                             <i class="fa-solid fa-file-excel me-1"></i> Export Report (Excel)
@@ -352,6 +367,8 @@
     let reportData = [];
     let revenueChartInstance = null;
     let hoursChartInstance = null;
+    let sourceChartInstance = null;
+    let projectChartInstance = null;
 
     document.addEventListener("DOMContentLoaded", () => {
         generateMonthReport();
@@ -454,19 +471,21 @@
             <td class="text-success fw-bold">$${grandAmount.toLocaleString()}</td>
         </tr>`;
 
-        // Render Charts
-        renderCharts(reportData);
+        // Render All Charts
+        renderCharts(reportData, salesData);
     }
 
-    function renderCharts(data) {
-        const labels = data.map(d => d.month);
-        const amounts = data.map(d => d.amount);
-        const hours = data.map(d => d.hours);
-
+    function renderCharts(monthData, rawSalesData) {
         if (revenueChartInstance) revenueChartInstance.destroy();
         if (hoursChartInstance) hoursChartInstance.destroy();
+        if (sourceChartInstance) sourceChartInstance.destroy();
+        if (projectChartInstance) projectChartInstance.destroy();
 
         // 1. Monthly Revenue Bar Chart
+        const labels = monthData.map(d => d.month);
+        const amounts = monthData.map(d => d.amount);
+        const hours = monthData.map(d => d.hours);
+
         const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
         revenueChartInstance = new Chart(ctxRevenue, {
             type: 'bar',
@@ -484,9 +503,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
                     x: { grid: { display: false } }
@@ -514,12 +531,81 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
                     x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. NEW: Revenue by Lead Source (Doughnut Chart)
+        const sourceGroup = {};
+        rawSalesData.forEach(item => {
+            const source = getProp(item, "source") || "Direct";
+            const h = Number(getProp(item, "hours")) || 0;
+            const r = Number(getProp(item, "rate")) || 0;
+            const amt = Number(getProp(item, "amount")) || (h * r) || 0;
+            sourceGroup[source] = (sourceGroup[source] || 0) + amt;
+        });
+
+        const ctxSource = document.getElementById('sourceChart').getContext('2d');
+        sourceChartInstance = new Chart(ctxSource, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(sourceGroup),
+                datasets: [{
+                    data: Object.values(sourceGroup),
+                    backgroundColor: ['#2563eb', '#10b981', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                }
+            }
+        });
+
+        // 4. NEW: Top 5 Projects by Revenue (Horizontal Bar Chart)
+        const projectGroup = {};
+        rawSalesData.forEach(item => {
+            const project = getProp(item, "project name") || getProp(item, "project") || "Other";
+            const h = Number(getProp(item, "hours")) || 0;
+            const r = Number(getProp(item, "rate")) || 0;
+            const amt = Number(getProp(item, "amount")) || (h * r) || 0;
+            projectGroup[project] = (projectGroup[project] || 0) + amt;
+        });
+
+        const sortedProjects = Object.entries(projectGroup)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        const ctxProject = document.getElementById('projectChart').getContext('2d');
+        projectChartInstance = new Chart(ctxProject, {
+            type: 'bar',
+            data: {
+                labels: sortedProjects.map(p => p[0]),
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: sortedProjects.map(p => p[1]),
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    borderColor: '#10b981',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    y: { grid: { display: false } }
                 }
             }
         });
