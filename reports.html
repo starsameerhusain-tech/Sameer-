@@ -297,7 +297,7 @@
                     </div>
                 </div>
 
-                <!-- Row 2: NEW Visualizations (Lead Source & Top Projects) -->
+                <!-- Row 2: Visualizations (Lead Source & Top Projects) -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <div class="card panel-card h-100 overflow-hidden">
@@ -374,9 +374,13 @@
         generateMonthReport();
     });
 
+    // Flexible property getter to safely match keys despite spaces, special chars, or casing
     function getProp(obj, propName) {
         if (!obj) return "";
-        const key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
+        const normalize = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
+        const normalizedProp = normalize(propName);
+        
+        const key = Object.keys(obj).find(k => normalize(k) === normalizedProp);
         return key ? obj[key] : "";
     }
 
@@ -539,7 +543,7 @@
             }
         });
 
-        // 3. NEW: Revenue by Lead Source (Doughnut Chart)
+        // 3. Revenue by Lead Source (Doughnut Chart)
         const sourceGroup = {};
         rawSalesData.forEach(item => {
             const source = getProp(item, "source") || "Direct";
@@ -570,7 +574,7 @@
             }
         });
 
-        // 4. NEW: Top 5 Projects by Revenue (Horizontal Bar Chart)
+        // 4. Top 5 Projects by Revenue (Horizontal Bar Chart)
         const projectGroup = {};
         rawSalesData.forEach(item => {
             const project = getProp(item, "project name") || getProp(item, "project") || "Other";
