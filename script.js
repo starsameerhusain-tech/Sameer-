@@ -1,14 +1,24 @@
-// Paste your copied Google Web App URL inside the quotes below
+// =========================================================================
+// 1. CONFIGURATION
+// =========================================================================
+// Replace the link below with your Google Apps Script Web App URL
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzjaw45_8ABlqMgrSUcpbpkLpbO4vREuqJriOk4PabMmLq-K9lnGF7Rc7QS1QCoDnLVFg/exec";
 
+
+// =========================================================================
+// 2. INITIALIZATION
+// =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     loadSalesData();
 });
 
-// Function to upload Excel file & Sync to Google Sheets
+
+// =========================================================================
+// 3. CORE EXCEL UPLOAD & DATA PARSING
+// =========================================================================
 function uploadExcel() {
     const fileInput = document.getElementById("fileInput");
-    const file = fileInput.files[0];
+    const file = fileInput ? fileInput.files[0] : null;
 
     if (!file) {
         alert("Please select an Excel or CSV file first!");
@@ -24,108 +34,131 @@ function uploadExcel() {
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
 
-            // Convert worksheet to JSON
+            // Convert raw sheet data into JSON objects
             const rawJson = XLSX.utils.sheet_to_json(worksheet);
 
-            if (rawJson.length === 0) {
-                alert("Uploaded file is empty!");
+            if (!rawJson || rawJson.length === 0) {
+                alert("Uploaded file contains no data!");
                 return;
             }
 
-            // Normalize JSON data keys to match schema
+            // Normalize JSON data keys to match the system schema
             const formattedData = rawJson.map(row => {
+                const rate = Number(getProp(row, "rate")) || 0;
+                const hours = Number(getProp(row, "hours")) || 0;
+                const amount = Number(getProp(row, "amount")) || (rate * hours);
+
                 return {
-                    month: getProp(row, "month"),
-                    projectName: getProp(row, "project name") || getProp(row, "projectname"),
-                    emailId: getProp(row, "email id") || getProp(row, "emailid") || getProp(row, "email"),
-                    name: getProp(row, "name"),
-                    source: getProp(row, "source"),
-                    language: getProp(row, "language"),
-                    rate: Number(getProp(row, "rate")) || 0,
-                    hours: Number(getProp(row, "hours")) || 0,
-                    amount: Number(getProp(row, "amount")) || (Number(getProp(row, "rate")) * Number(getProp(row, "hours"))) || 0,
-                    projectCode: getProp(row, "project code") || getProp(row, "projectcode")
+                    month: String(getProp(row, "month")).trim(),
+                    projectName: String(getProp(row, "project name") || getProp(row, "projectname")).trim(),
+                    emailId: String(getProp(row, "email id") || getProp(row, "emailid") || getProp(row, "email")).trim(),
+                    name: String(getProp(row, "name")).trim(),
+                    source: String(getProp(row, "source")).trim(),
+                    language: String(getProp(row, "language")).trim(),
+                    rate: rate,
+                    hours: hours,
+                    amount: amount,
+                    projectCode: String(getProp(row, "project code") || getProp(row, "projectcode")).trim()
                 };
             });
 
-            // Save to LocalStorage for instant local display
+            // 1. Save to LocalStorage for local dashboard & reports.html
             localStorage.setItem("salesData", JSON.stringify(formattedData));
             
-            // Render local table
+            // 2. Refresh the local UI table
             loadSalesData();
 
-            // Send data to Google Sheets in background
+            // 3. Push data to Google Sheets in background
             sendToGoogleSheet(formattedData);
 
-            alert(`Success! ${formattedData.length} records loaded into website & syncing to Google Sheets.`);
+            alert(`Success! ${formattedData.length} records processed and sent to Google Sheets.`);
 
         } catch (error) {
-            console.error("Error reading file:", error);
-            alert("Failed to process file. Please ensure it's a valid Excel or CSV file.");
+            console.error("Error parsing file:", error);
+            alert("Failed to process file. Please upload a valid Excel (.xlsx) or CSV file.");
         }
     };
 
     reader.readAsArrayBuffer(file);
 }
 
-// Function to POST data to Google Apps Script Web App
+
+// =========================================================================
+// 4. GOOGLE SHEETS API SYNC (FIXED CORS & CONTENT-TYPE)
+// =========================================================================
 async function sendToGoogleSheet(data) {
     if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("PASTE_YOUR_GOOGLE_WEB_APP_URL_HERE")) {
-        console.warn("Google Sheet URL is not configured yet.");
+        console.warn("Google Sheet URL is not configured in script.js!");
         return;
     }
 
     try {
+        // Send as text/plain to avoid CORS pre-flight OPTIONS blocks from Google Apps Script
         await fetch(GOOGLE_SHEET_URL, {
             method: "POST",
-            mode: "no-cors", // Bypasses CORS policy for Apps Script Web Apps
+            mode: "no-cors", 
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "text/plain;charset=utf-8"
             },
             body: JSON.stringify(data)
         });
-        console.log("Data successfully sent to Google Sheet!");
+
+        console.log("Data successfully dispatched to Google Sheet!");
     } catch (err) {
         console.error("Error syncing to Google Sheet:", err);
     }
 }
 
-// Helper function to handle case-insensitive Excel column header matching
+
+// =========================================================================
+// 5. HELPER FUNCTIONS & RENDER LOGIC
+// =========================================================================
+
+// Robust case-insensitive and space-insensitive column matcher
 function getProp(obj, propName) {
     if (!obj) return "";
-    const key = Object.keys(obj).find(k => k.toLowerCase().replace(/[\s_]/g, '') === propName.toLowerCase().replace(/[\s_]/g, ''));
+    const cleanProp = propName.toLowerCase().replace(/[\s_]/g, '');
+    const key = Object.keys(obj).find(k => k.toLowerCase().replace(/[\s_]/g, '') === cleanProp);
     return key ? obj[key] : "";
 }
 
-// Function to load and render table on Dashboard
+// Render data to index.html dashboard table
 function loadSalesData() {
     const raw = localStorage.getItem("salesData");
     const tbody = document.getElementById("salesTableBody");
-    if (!tbody) return; // Not on index.html page
+    if (!tbody) return; // Exit if called from a page without the table element
 
     if (!raw) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No sales data available. Upload an Excel file to get started.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No sales data loaded. Upload a file above.</td></tr>`;
         return;
     }
 
-    const salesData = JSON.parse(raw);
-    let html = "";
+    try {
+        const salesData = JSON.parse(raw);
+        if (!Array.isArray(salesData) || salesData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No sales data available.</td></tr>`;
+            return;
+        }
 
-    salesData.forEach((row, index) => {
-        html += `
-        <tr>
-            <td>${row.month}</td>
-            <td>${row.projectName}</td>
-            <td>${row.emailId}</td>
-            <td>${row.name}</td>
-            <td>${row.source}</td>
-            <td>${row.language}</td>
-            <td>$${row.rate}</td>
-            <td>${row.hours} hrs</td>
-            <td class="fw-bold text-success">$${row.amount}</td>
-            <td><span class="badge bg-secondary">${row.projectCode}</span></td>
-        </tr>`;
-    });
+        let html = "";
+        salesData.forEach((row) => {
+            html += `
+            <tr>
+                <td>${row.month || '-'}</td>
+                <td>${row.projectName || '-'}</td>
+                <td>${row.emailId || '-'}</td>
+                <td>${row.name || '-'}</td>
+                <td>${row.source || '-'}</td>
+                <td>${row.language || '-'}</td>
+                <td>$${row.rate}</td>
+                <td>${row.hours} hrs</td>
+                <td class="fw-bold text-success">$${row.amount.toLocaleString()}</td>
+                <td><span class="badge bg-secondary">${row.projectCode || '-'}</span></td>
+            </tr>`;
+        });
 
-    tbody.innerHTML = html;
+        tbody.innerHTML = html;
+    } catch(e) {
+        console.error("Error rendering table:", e);
+    }
 }
