@@ -1,229 +1,402 @@
-let salesData = [];
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadSavedData();
-    document.getElementById("uploadBtn").addEventListener("click", handleUpload);
-});
-
-// Fetch saved data from localStorage on initialization
-function loadSavedData() {
-    const data = localStorage.getItem("salesData");
-    if (data) {
-        try {
-            salesData = JSON.parse(data);
-            renderData(salesData);
-        } catch (e) {
-            console.error("Error parsing stored sales data", e);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics Suite</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #edf2f7;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --primary-accent: #2563eb;
+            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --card-radius: 16px;
         }
-    }
-}
 
-// Upload & Parse Excel/CSV
-function handleUpload() {
-    const fileInput = document.getElementById("excelFile");
-    const file = fileInput.files[0];
-    if (!file) {
-        alert("Please select an Excel or CSV file first!");
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            
-            salesData = XLSX.utils.sheet_to_json(worksheet);
-            localStorage.setItem("salesData", JSON.stringify(salesData));
-            renderData(salesData);
-            
-            document.getElementById("uploadStatus").innerHTML = 
-                `<span class="text-success fw-bold mt-2 d-block"><i class="fa-solid fa-check me-1"></i> File uploaded and rendered successfully!</span>`;
-        } catch (err) {
-            alert("Error reading file: " + err.message);
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: #1e293b;
         }
-    };
-    reader.readAsArrayBuffer(file);
-}
 
-// Case-insensitive key retriever for flexible Excel column headers
-function getProp(obj, keyName) {
-    if (!obj) return "";
-    const norm = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
-    const key = Object.keys(obj).find(k => norm(k) === norm(keyName));
-    return key ? obj[key] : "";
-}
+        /* Top Navbar */
+        .navbar-custom {
+            background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-// Case-insensitive key setter
-function setProp(obj, keyName, val) {
-    if (!obj) return;
-    const norm = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
-    const key = Object.keys(obj).find(k => norm(k) === norm(keyName));
-    if (key) {
-        obj[key] = val;
-    } else {
-        obj[keyName] = val;
-    }
-}
+        /* Sidebar */
+        .sidebar {
+            min-height: calc(100vh - 60px);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #1e293b;
+        }
 
-// Render Data Table
-function renderData(data) {
-    const tbody = document.getElementById("salesTableBody");
-    tbody.innerHTML = "";
+        .sidebar .nav-link {
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    if (!data || data.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" class="text-center py-5 text-muted">
-                    <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
-                    No Data Available
-                </td>
-            </tr>`;
-        updateKPIs([]);
-        return;
-    }
+        .sidebar .nav-link:hover {
+            color: #ffffff;
+            background-color: var(--sidebar-hover);
+            transform: translateX(4px);
+        }
 
-    data.forEach((item, index) => {
-        const rate = Number(getProp(item, "rate")) || 0;
-        const hours = Number(getProp(item, "hours")) || 0;
-        const amount = Number(getProp(item, "amount")) || (rate * hours);
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background: var(--primary-gradient);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+        }
 
-        const tr = document.createElement("tr");
-        tr.id = `row-${index}`;
-        tr.innerHTML = `
-            <td>${getProp(item, "month") || "-"}</td>
-            <td>${getProp(item, "project name") || getProp(item, "project") || "-"}</td>
-            <td>${getProp(item, "email id") || getProp(item, "email") || "-"}</td>
-            <td>${getProp(item, "name") || getProp(item, "client name") || "-"}</td>
-            <td>${getProp(item, "source") || "-"}</td>
-            <td>${getProp(item, "language") || "-"}</td>
-            <td>$${rate}</td>
-            <td>${hours} hrs</td>
-            <td class="fw-bold text-success">$${amount}</td>
-            <td>${getProp(item, "project code") || getProp(item, "code") || "-"}</td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-outline-primary py-1 px-3 border-0 rounded-2 fw-semibold" onclick="enableEdit(${index})">
-                    <i class="fa-solid fa-pen-to-square me-1"></i>Edit
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+        /* Vibrant Accent Metric Cards */
+        .kpi-card {
+            border: none;
+            border-radius: var(--card-radius);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
 
-    updateKPIs(data);
-}
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+        }
 
-// Enable Inline Row Editing
-function enableEdit(index) {
-    const item = salesData[index];
-    const tr = document.getElementById(`row-${index}`);
+        /* Custom Soft Color Fills for KPI Cards */
+        .kpi-card-blue {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 5px solid #0284c7;
+        }
+        .kpi-card-green {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-left: 5px solid #16a34a;
+        }
+        .kpi-card-purple {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 5px solid #9333ea;
+        }
+        .kpi-card-amber {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #d97706;
+        }
 
-    const rate = Number(getProp(item, "rate")) || 0;
-    const hours = Number(getProp(item, "hours")) || 0;
-    const amount = Number(getProp(item, "amount")) || (rate * hours);
+        .kpi-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
 
-    tr.innerHTML = `
-        <td><input type="text" class="edit-input" id="edit-month-${index}" value="${getProp(item, "month")}"></td>
-        <td><input type="text" class="edit-input" id="edit-project-${index}" value="${getProp(item, "project name") || getProp(item, "project")}"></td>
-        <td><input type="text" class="edit-input" id="edit-email-${index}" value="${getProp(item, "email id") || getProp(item, "email")}"></td>
-        <td><input type="text" class="edit-input" id="edit-name-${index}" value="${getProp(item, "name") || getProp(item, "client name")}"></td>
-        <td><input type="text" class="edit-input" id="edit-source-${index}" value="${getProp(item, "source")}"></td>
-        <td><input type="text" class="edit-input" id="edit-language-${index}" value="${getProp(item, "language")}"></td>
-        <td><input type="number" class="edit-input" id="edit-rate-${index}" value="${rate}" oninput="calcEditAmount(${index})"></td>
-        <td><input type="number" class="edit-input" id="edit-hours-${index}" value="${hours}" oninput="calcEditAmount(${index})"></td>
-        <td><input type="number" class="edit-input fw-bold" id="edit-amount-${index}" value="${amount}" readonly></td>
-        <td><input type="text" class="edit-input" id="edit-code-${index}" value="${getProp(item, "project code") || getProp(item, "code")}"></td>
-        <td class="text-center">
-            <button class="btn btn-sm btn-success py-1 px-2 me-1 rounded-2" title="Save" onclick="saveEdit(${index})">
-                <i class="fa-solid fa-check"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary py-1 px-2 rounded-2" title="Cancel" onclick="renderData(salesData)">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </td>
-    `;
-}
+        /* Panels with Subtle Slate Background */
+        .panel-card {
+            border: 1px solid #cbd5e1;
+            border-radius: var(--card-radius);
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
 
-// Automatically recalculate Amount on Rate/Hours input
-function calcEditAmount(index) {
-    const r = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
-    const h = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
-    document.getElementById(`edit-amount-${index}`).value = r * h;
-}
+        .panel-header-blue {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
+            font-weight: 700;
+        }
 
-// Save edited row data back to main array & localStorage
-function saveEdit(index) {
-    const item = salesData[index];
+        .panel-header-teal {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
+            font-weight: 700;
+        }
 
-    const rate = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
-    const hours = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
+        /* Input Controls */
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+        }
 
-    setProp(item, "month", document.getElementById(`edit-month-${index}`).value);
-    setProp(item, "project name", document.getElementById(`edit-project-${index}`).value);
-    setProp(item, "email id", document.getElementById(`edit-email-${index}`).value);
-    setProp(item, "name", document.getElementById(`edit-name-${index}`).value);
-    setProp(item, "source", document.getElementById(`edit-source-${index}`).value);
-    setProp(item, "language", document.getElementById(`edit-language-${index}`).value);
-    setProp(item, "rate", rate);
-    setProp(item, "hours", hours);
-    setProp(item, "amount", rate * hours);
-    setProp(item, "project code", document.getElementById(`edit-code-${index}`).value);
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
 
-    salesData[index] = item;
-    localStorage.setItem("salesData", JSON.stringify(salesData));
-    renderData(salesData);
-}
+        /* Upload Area */
+        .file-upload-wrapper {
+            border: 2px dashed #94a3b8;
+            border-radius: 12px;
+            padding: 16px;
+            background-color: #ffffff;
+            transition: all 0.2s;
+            text-align: center;
+        }
 
-// Update Top Dashboard KPIs
-function updateKPIs(data) {
-    let totalAmt = 0;
-    let totalHrs = 0;
-    let rateSum = 0;
+        .file-upload-wrapper:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
 
-    data.forEach(item => {
-        const r = Number(getProp(item, "rate")) || 0;
-        const h = Number(getProp(item, "hours")) || 0;
-        const a = Number(getProp(item, "amount")) || (r * h);
+        /* Table Design */
+        .table-custom {
+            margin-bottom: 0;
+            background-color: #ffffff;
+        }
 
-        totalAmt += a;
-        totalHrs += h;
-        rateSum += r;
-    });
+        .table-custom thead th {
+            background-color: #334155;
+            color: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 14px 20px;
+            border: none;
+        }
 
-    document.getElementById("totalAmount").innerText = `$${totalAmt.toLocaleString()}`;
-    document.getElementById("totalRecords").innerText = data.length.toLocaleString();
-    document.getElementById("totalHours").innerText = `${totalHrs.toLocaleString()} hrs`;
-    document.getElementById("avgRate").innerText = `$${data.length > 0 ? Math.round(rateSum / data.length) : 0}/hr`;
-}
+        .table-custom tbody td {
+            padding: 14px 20px;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-// Search and Filter functionality
-function handleSearch() {
-    const nameQuery = document.getElementById("searchName").value.toLowerCase();
-    const emailQuery = document.getElementById("searchEmail").value.toLowerCase();
-    const monthQuery = document.getElementById("searchMonth").value.toLowerCase();
+        .table-custom tbody tr:nth-child(even) {
+            background-color: #f1f5f9;
+        }
 
-    if (!nameQuery && !emailQuery && !monthQuery) {
-        renderData(salesData);
-        return;
-    }
+        .table-custom tbody tr:hover {
+            background-color: #e2e8f0;
+        }
 
-    const filtered = salesData.filter(item => {
-        const name = String(getProp(item, "name") || getProp(item, "client name")).toLowerCase();
-        const email = String(getProp(item, "email id") || getProp(item, "email")).toLowerCase();
-        const month = String(getProp(item, "month")).toLowerCase();
+        .btn-gradient-primary {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s;
+        }
 
-        return name.includes(nameQuery) && email.includes(emailQuery) && month.includes(monthQuery);
-    });
+        .btn-gradient-primary:hover {
+            opacity: 0.95;
+            color: white;
+        }
 
-    renderData(filtered);
-}
+        /* Inline Input Editing Styles */
+        .edit-input {
+            width: 100%;
+            padding: 4px 8px;
+            font-size: 0.85rem;
+            border: 1px solid #2563eb;
+            border-radius: 6px;
+            background-color: #f0f9ff;
+        }
+    </style>
+</head>
+<body>
 
-// Reset filters
-function resetFilters() {
-    document.getElementById("searchName").value = "";
-    document.getElementById("searchEmail").value = "";
-    document.getElementById("searchMonth").value = "";
-    renderData(salesData);
-}
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-dark navbar-custom px-4 py-3 sticky-top">
+        <div class="container-fluid p-0">
+            <span class="navbar-brand fw-bold fs-5 d-flex align-items-center gap-2">
+                <div class="p-2 bg-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="fa-solid fa-chart-line text-white fs-6"></i>
+                </div>
+                Sales Analytics Suite
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
+                    <i class="fa-solid fa-circle text-white me-1" style="font-size: 8px;"></i> System Live
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-md-2 sidebar p-3 d-none d-md-block">
+                <div class="text-uppercase small fw-bold mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
+                <ul class="nav flex-column gap-2">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active">
+                            <i class="fa-solid fa-house me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reports.html" class="nav-link">
+                            <i class="fa-solid fa-chart-pie me-1"></i> Reports
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-10 p-4">
+                
+                <!-- KPI Dashboard Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-blue">
+                            <div class="kpi-icon-wrapper text-primary">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalAmount">$0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-green">
+                            <div class="kpi-icon-wrapper text-success">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Orders</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalRecords">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-purple">
+                            <div class="kpi-icon-wrapper" style="color: #9333ea;">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalHours">0 hrs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-amber">
+                            <div class="kpi-icon-wrapper text-warning">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
+                            <div class="fs-2 fw-bold text-dark" id="avgRate">$0/hr</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Import Section -->
+                <div class="card panel-card mb-4 overflow-hidden">
+                    <div class="panel-header-blue d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-info"></i> Data Ingestion & Sync
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-9">
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls, .csv">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="uploadBtn" class="btn btn-gradient-primary w-100">
+                                    <i class="fa-solid fa-upload me-2"></i>Upload File
+                                </button>
+                            </div>
+                        </div>
+                        <div id="uploadStatus"></div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters Panel -->
+                <div class="card panel-card mb-4 overflow-hidden">
+                    <div class="panel-header-teal d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-filter text-info me-2"></i> Quick Filters</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-bold">Search Name</label>
+                                <input type="text" id="searchName" class="form-control" placeholder="Search by name..." oninput="handleSearch()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted fw-bold">Filter Email</label>
+                                <input type="text" id="searchEmail" class="form-control" placeholder="Search by email..." oninput="handleSearch()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-bold">Select Month</label>
+                                <input type="text" id="searchMonth" class="form-control" placeholder="e.g. January" oninput="handleSearch()">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" id="resetBtn" class="btn btn-dark w-100 rounded-3 border fw-semibold" style="padding: 10px;" onclick="resetFilters()">
+                                    <i class="fa-solid fa-rotate-left me-1"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="card panel-card overflow-hidden">
+                    <div class="panel-header-blue d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-table me-2"></i> Sales Records</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Project</th>
+                                    <th>Email ID</th>
+                                    <th>Client Name</th>
+                                    <th>Source</th>
+                                    <th>Language</th>
+                                    <th>Rate</th>
+                                    <th>Hours</th>
+                                    <th>Amount</th>
+                                    <th>Code</th>
+                                    <th class="text-center" style="width: 120px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTableBody">
+                                <tr>
+                                    <td colspan="11" class="text-center py-5 text-muted">
+                                        <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
+                                        No Data Available
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SheetJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Custom JS logic with version query parameter to bypass GitHub Pages cache -->
+    <script src="script.js?v=2.0"></script>
+</body>
+</html>
