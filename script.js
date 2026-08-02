@@ -1,12 +1,7 @@
-// ==========================================
-// Sales Management System - Guaranteed Dynamic Dashboard Fix
-// ==========================================
-
+// Global dataset store
 let salesData = [];
 
-// ------------------------------------------
 // 1. Upload & Parse Excel File
-// ------------------------------------------
 function uploadExcel() {
     const fileInput = document.getElementById("excelFile");
     const file = fileInput ? fileInput.files[0] : null;
@@ -27,7 +22,7 @@ function uploadExcel() {
             const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
             if (!rawRows || rawRows.length === 0) {
-                alert("Excel file appears to be empty.");
+                alert("Excel file is empty.");
                 return;
             }
 
@@ -46,9 +41,7 @@ function uploadExcel() {
                 }
             }
 
-            if (startRowIndex === -1) {
-                startRowIndex = 1;
-            }
+            if (startRowIndex === -1) startRowIndex = 1;
 
             salesData = [];
 
@@ -76,31 +69,57 @@ function uploadExcel() {
                 });
             }
 
-            // Save to localStorage if your app uses it
             try {
                 localStorage.setItem("salesData", JSON.stringify(salesData));
             } catch(e) {}
 
-            // Trigger search to render table and dashboard with current filters (or full if no filter)
-            searchData();
+            filterAll();
 
             const statusEl = document.getElementById("uploadStatus");
             if (statusEl) {
                 statusEl.innerHTML = "✅ " + salesData.length + " records uploaded successfully.";
             }
         } catch (err) {
-            console.error("Error parsing Excel:", err);
-            alert("Error reading file. Please check console (F12) for details.");
+            console.error("Error reading file:", err);
+            alert("Error reading Excel file.");
         }
     };
 
     reader.readAsArrayBuffer(file);
 }
 
-// ------------------------------------------
-// 2. Render Table Rows
-// ------------------------------------------
-function loadTable(data) {
+// 2. Combined Filter Engine: Updates Table AND Cards simultaneously
+function filterAll() {
+    const nameInput = document.getElementById("customerSearch");
+    const emailInput = document.getElementById("emailSearch");
+    const monthInput = document.getElementById("monthSearch");
+
+    const nameQuery = nameInput ? nameInput.value.trim().toLowerCase() : "";
+    const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
+    const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
+
+    // Filter master array
+    const filtered = salesData.filter(item => {
+        const nameVal = (item.name || "").toLowerCase();
+        const emailVal = (item.email || "").toLowerCase();
+        const monthVal = (item.month || "").toLowerCase();
+
+        const matchesName = !nameQuery || nameVal.includes(nameQuery);
+        const matchesEmail = !emailQuery || emailVal.includes(emailQuery);
+        const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
+
+        return matchesName && matchesEmail && matchesMonth;
+    });
+
+    // Update Table
+    renderTable(filtered);
+
+    // Update Dashboard Cards
+    renderDashboard(filtered);
+}
+
+// 3. Render Table Function
+function renderTable(data) {
     const tbody = document.getElementById("salesTable");
     if (!tbody) return;
 
@@ -129,69 +148,21 @@ function loadTable(data) {
     tbody.innerHTML = html;
 }
 
-// ------------------------------------------
-// 3. Dynamic Dashboard Cards (Forces Recalculation)
-// ------------------------------------------
-function updateDashboard(dataset) {
-    // Default to salesData if dataset is not passed
-    const currentData = dataset || salesData;
-
-    const setSafeText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = text;
-    };
-
-    const totalSales = currentData.reduce((a, b) => a + (Number(b.amount) || 0), 0);
-    const totalHours = currentData.reduce((a, b) => a + (Number(b.hours) || 0), 0);
-    const avgRate = currentData.length > 0 
-        ? Math.round(currentData.reduce((a, b) => a + (Number(b.rate) || 0), 0) / currentData.length) 
+// 4. Render Dashboard KPI Cards Function
+function renderDashboard(data) {
+    const totalSales = data.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const totalHours = data.reduce((sum, item) => sum + (Number(item.hours) || 0), 0);
+    const avgRate = data.length > 0 
+        ? Math.round(data.reduce((sum, item) => sum + (Number(item.rate) || 0), 0) / data.length) 
         : 0;
 
-    setSafeText("totalSales", totalSales.toLocaleString());
-    setSafeText("totalCustomers", currentData.length.toLocaleString()); // Total Records
-    setSafeText("totalProducts", totalHours.toLocaleString()); // Total Hours
-    setSafeText("totalQty", avgRate.toLocaleString()); // Avg Rate
+    document.getElementById("totalSales").innerText = totalSales.toLocaleString();
+    document.getElementById("totalCustomers").innerText = data.length.toLocaleString();
+    document.getElementById("totalProducts").innerText = totalHours.toLocaleString();
+    document.getElementById("totalQty").innerText = avgRate.toLocaleString();
 }
 
-// ------------------------------------------
-// 4. Live Search (Filters Table AND Updates Dashboard)
-// ------------------------------------------
-function searchData(e) {
-    if (e && e.preventDefault) {
-        e.preventDefault();
-    }
-
-    const nameInput = document.getElementById("customerSearch");
-    const emailInput = document.getElementById("emailSearch");
-    const monthInput = document.getElementById("monthSearch");
-
-    const nameQuery = nameInput ? nameInput.value.trim().toLowerCase() : "";
-    const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
-    const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
-
-    // Filter from master salesData array
-    const filtered = salesData.filter(item => {
-        const nameVal = (item.name || "").toLowerCase();
-        const emailVal = (item.email || "").toLowerCase();
-        const monthVal = (item.month || "").toLowerCase();
-
-        const matchesName = !nameQuery || nameVal.includes(nameQuery);
-        const matchesEmail = !emailQuery || emailVal.includes(emailQuery);
-        const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
-
-        return matchesName && matchesEmail && matchesMonth;
-    });
-
-    // 1. Update Table with filtered records
-    loadTable(filtered);
-
-    // 2. FORCE Dashboard to calculate ONLY filtered records
-    updateDashboard(filtered);
-}
-
-// ------------------------------------------
-// 5. Download CSV
-// ------------------------------------------
+// 5. CSV Export
 function downloadCSV() {
     if (salesData.length === 0) {
         alert("No data available to download.");
@@ -213,14 +184,11 @@ function downloadCSV() {
 }
 
 function downloadExcel() {
-    alert("Excel download feature coming soon!");
+    alert("Excel download coming soon!");
 }
 
-// ------------------------------------------
-// 6. Automatic Initialization
-// ------------------------------------------
+// 6. Page Initialization
 document.addEventListener("DOMContentLoaded", () => {
-    // Check if data exists in localStorage
     try {
         const saved = localStorage.getItem("salesData");
         if (saved) {
@@ -232,14 +200,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     } catch(e) {}
 
-    const nameInput = document.getElementById("customerSearch");
-    const emailInput = document.getElementById("emailSearch");
-    const monthInput = document.getElementById("monthSearch");
-
-    if (nameInput) nameInput.addEventListener("keyup", searchData);
-    if (emailInput) emailInput.addEventListener("keyup", searchData);
-    if (monthInput) monthInput.addEventListener("keyup", searchData);
-
-    // Initial render
-    searchData();
+    filterAll();
 });
