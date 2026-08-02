@@ -2,7 +2,7 @@
 // 1. CONFIGURATION
 // =========================================================================
 // Replace the link below with your Google Apps Script Web App URL
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzjaw45_8ABlqMgrSUcpbpkLpbO4vREuqJriOk4PabMmLq-K9lnGF7Rc7QS1QCoDnLVFg/exec";
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/16pabK6zQMYV5IYyQCegmp6iODJiD39OUvwxFNzNYRDg/edit?gid=0#gid=0";
 
 
 // =========================================================================
