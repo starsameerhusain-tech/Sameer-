@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Sales Management System</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark bg-primary shadow">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">📊 Sales Management System</span>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    Menu
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="index.html" class="list-group-item list-group-item-action">Dashboard / Sales</a>
+                    <a href="reports.html" class="list-group-item list-group-item-action active">Reports</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-9">
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📅 Month-Wise Sales Report</h5>
+                    <button class="btn btn-light btn-sm" onclick="exportReportToExcel()">
+                        📥 Export Report (Excel)
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Total Records</th>
+                                    <th>Total Hours</th>
+                                    <th>Avg Rate ($)</th>
+                                    <th>Total Amount ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTable">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading Report...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="reportsFooter" class="table-secondary fw-bold">
+                                <!-- Totals populated dynamically -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- External Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+let reportData = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    generateMonthReport();
+});
+
+function generateMonthReport() {
+    let salesData = [];
+    try {
+        const saved = localStorage.getItem("salesData");
+        if (saved) salesData = JSON.parse(saved);
+    } catch(e) {}
+
+    const tbody = document.getElementById("reportsTable");
+    const tfoot = document.getElementById("reportsFooter");
+
+    if (!salesData || salesData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No sales data available. Upload data from the Dashboard first.</td></tr>`;
+        tfoot.innerHTML = "";
+        return;
+    }
+
+    // Group data by Month
+    const monthGroup = {};
+
+    salesData.forEach(item => {
+        const month = item.month ? item.month.trim() : "Unknown";
+        if (!monthGroup[month]) {
+            monthGroup[month] = {
+                month: month,
+                records: 0,
+                hours: 0,
+                totalRate: 0,
+                amount: 0
+            };
+        }
+
+        monthGroup[month].records += 1;
+        monthGroup[month].hours += Number(item.hours) || 0;
+        monthGroup[month].totalRate += Number(item.rate) || 0;
+        monthGroup[month].amount += Number(item.amount) || 0;
+    });
+
+    reportData = Object.values(monthGroup);
+
+    // Render Table Rows
+    let html = "";
+    let grandRecords = 0;
+    let grandHours = 0;
+    let grandAmount = 0;
+    let totalRateSum = 0;
+
+    reportData.forEach(r => {
+        const avgRate = r.records > 0 ? Math.round(r.totalRate / r.records) : 0;
+        
+        grandRecords += r.records;
+        grandHours += r.hours;
+        grandAmount += r.amount;
+        totalRateSum += r.totalRate;
+
+        html += `
+        <tr>
+            <td class="fw-bold">${r.month}</td>
+            <td>${r.records.toLocaleString()}</td>
+            <td>${r.hours.toLocaleString()} hrs</td>
+            <td>$${avgRate.toLocaleString()}</td>
+            <td class="text-success fw-bold">$${r.amount.toLocaleString()}</td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html;
+
+    // Render Footer Totals
+    const grandAvgRate = grandRecords > 0 ? Math.round(totalRateSum / grandRecords) : 0;
+    tfoot.innerHTML = `
+    <tr>
+        <td>Grand Total</td>
+        <td>${grandRecords.toLocaleString()}</td>
+        <td>${grandHours.toLocaleString()} hrs</td>
+        <td>$${grandAvgRate.toLocaleString()} (Avg)</td>
+        <td class="text-success">$${grandAmount.toLocaleString()}</td>
+    </tr>`;
+}
+
+function exportReportToExcel() {
+    if (!reportData || reportData.length === 0) {
+        alert("No report data available to export.");
+        return;
+    }
+
+    const exportRows = reportData.map(r => ({
+        "Month": r.month,
+        "Total Records": r.records,
+        "Total Hours": r.hours,
+        "Avg Rate": r.records > 0 ? Math.round(r.totalRate / r.records) : 0,
+        "Total Amount": r.amount
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+
+    XLSX.writeFile(workbook, "Monthly_Sales_Report.xlsx");
+}
+</script>
+
+</body>
+</html>
