@@ -3,116 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - Sales Management System</title>
+    <title>Reports - Sales Analytics Suite</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
 
+    <style>
+        :root {
+            --bg-main: #edf2f7;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --primary-accent: #2563eb;
+            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --card-radius: 16px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            color: #1e293b;
+        }
+
+        /* Top Navbar */
+        .navbar-custom {
+            background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            min-height: calc(100vh - 60px);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar .nav-link {
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link:hover {
+            color: #ffffff;
+            background-color: var(--sidebar-hover);
+            transform: translateX(4px);
+        }
+
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background: var(--primary-gradient);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Vibrant Accent Metric Cards */
+        .kpi-card {
+            border: none;
+            border-radius: var(--card-radius);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Custom Soft Color Fills for KPI Cards */
+        .kpi-card-blue {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 5px solid #0284c7;
+        }
+        .kpi-card-green {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-left: 5px solid #16a34a;
+        }
+        .kpi-card-purple {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 5px solid #9333ea;
+        }
+        .kpi-card-amber {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #d97706;
+        }
+
+        .kpi-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Panels with Slate Headers */
+        .panel-card {
+            border: 1px solid #cbd5e1;
+            border-radius: var(--card-radius);
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .panel-header-blue {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
+            font-weight: 700;
+        }
+
+        .panel-header-teal {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
+            font-weight: 700;
+        }
+
+        /* Table Design */
+        .table-custom {
+            margin-bottom: 0;
+            background-color: #ffffff;
+        }
+
+        .table-custom thead th {
+            background-color: #334155;
+            color: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 14px 20px;
+            border: none;
+        }
+
+        .table-custom tbody td {
+            padding: 14px 20px;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table-custom tbody tr:nth-child(even) {
+            background-color: #f1f5f9;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #e2e8f0;
+        }
+
+        .table-custom tfoot td {
+            background-color: #cbd5e1;
+            padding: 14px 20px;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .btn-excel {
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-excel:hover {
+            background: #059669;
+            color: white;
+        }
+    </style>
+</head>
 <body>
 
-<nav class="navbar navbar-dark bg-primary shadow">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">📊 Sales Management System</span>
-    </div>
-</nav>
-
-<div class="container-fluid mt-4">
-    <div class="row">
-
-        <!-- Sidebar Navigation -->
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    Menu
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-dark navbar-custom px-4 py-3 sticky-top">
+        <div class="container-fluid p-0">
+            <span class="navbar-brand fw-bold fs-5 d-flex align-items-center gap-2">
+                <div class="p-2 bg-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="fa-solid fa-chart-line text-white fs-6"></i>
                 </div>
-                <div class="list-group list-group-flush">
-                    <a href="index.html" class="list-group-item list-group-item-action">Dashboard / Sales</a>
-                    <a href="reports.html" class="list-group-item list-group-item-action active">Reports</a>
-                </div>
+                Sales Analytics Suite
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
+                    <i class="fa-solid fa-circle text-white me-1" style="font-size: 8px;"></i> System Live
+                </span>
             </div>
         </div>
+    </nav>
 
-        <!-- Main Content Area -->
-        <div class="col-md-9">
+    <div class="container-fluid">
+        <div class="row">
 
-            <!-- KPI Overview Row -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card text-center shadow-sm border-0 bg-primary text-white">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-1 text-white-50">Total Revenue</h6>
-                            <h3 id="kpiRevenue" class="fw-bold mb-0">$0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center shadow-sm border-0 bg-success text-white">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-1 text-white-50">Total Records</h6>
-                            <h3 id="kpiRecords" class="fw-bold mb-0">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center shadow-sm border-0 bg-info text-white">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-1 text-white-50">Total Hours</h6>
-                            <h3 id="kpiHours" class="fw-bold mb-0">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center shadow-sm border-0 bg-secondary text-white">
-                        <div class="card-body">
-                            <h6 class="card-subtitle mb-1 text-white-50">Avg Rate / Hr</h6>
-                            <h3 id="kpiAvgRate" class="fw-bold mb-0">$0</h3>
-                        </div>
-                    </div>
-                </div>
+            <!-- Sidebar Navigation -->
+            <div class="col-md-2 sidebar p-3 d-none d-md-block">
+                <div class="text-uppercase small fw-bold text-slate-400 mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
+                <ul class="nav flex-column gap-2">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <i class="fa-solid fa-house me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reports.html" class="nav-link active">
+                            <i class="fa-solid fa-chart-pie me-1"></i> Reports
+                        </a>
+                    </li>
+                </ul>
             </div>
 
-            <!-- Chart Visualizations Row -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header bg-white fw-bold">
-                            📈 Monthly Revenue ($)
+            <!-- Main Content Area -->
+            <div class="col-md-10 p-4">
+
+                <!-- KPI Overview Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-blue">
+                            <div class="kpi-icon-wrapper text-primary">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
+                            <div class="fs-2 fw-bold text-dark" id="kpiRevenue">$0</div>
                         </div>
-                        <div class="card-body">
-                            <canvas id="revenueChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-green">
+                            <div class="kpi-icon-wrapper text-success">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Records</div>
+                            <div class="fs-2 fw-bold text-dark" id="kpiRecords">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-purple">
+                            <div class="kpi-icon-wrapper" style="color: #9333ea;">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
+                            <div class="fs-2 fw-bold text-dark" id="kpiHours">0 hrs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="kpi-card kpi-card-amber">
+                            <div class="kpi-icon-wrapper text-warning">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
+                            <div class="fs-2 fw-bold text-dark" id="kpiAvgRate">$0/hr</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header bg-white fw-bold">
-                            ⏱️ Total Hours Worked
+                <!-- Chart Visualizations Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card panel-card h-100 overflow-hidden">
+                            <div class="panel-header-blue d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-chart-column text-info"></i> Monthly Revenue ($)
+                            </div>
+                            <div class="card-body p-4 bg-white">
+                                <canvas id="revenueChart" style="max-height: 250px;"></canvas>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <canvas id="hoursChart" style="max-height: 250px;"></canvas>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card panel-card h-100 overflow-hidden">
+                            <div class="panel-header-teal d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-info"></i> Total Hours Worked
+                            </div>
+                            <div class="card-body p-4 bg-white">
+                                <canvas id="hoursChart" style="max-height: 250px;"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Month-Wise Sales Report Table -->
-            <div class="card shadow mb-5">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">📅 Month-Wise Sales Report</h5>
-                    <button class="btn btn-light btn-sm fw-bold" onclick="exportReportToExcel()">
-                        📥 Export Report (Excel)
-                    </button>
-                </div>
-                <div class="card-body">
+                <!-- Month-Wise Sales Report Table -->
+                <div class="card panel-card overflow-hidden mb-5">
+                    <div class="panel-header-blue d-flex justify-content-between align-items-center">
+                        <span class="fs-6"><i class="fa-solid fa-calendar-days text-info me-2"></i> Month-Wise Sales Report</span>
+                        <button class="btn btn-excel btn-sm shadow-sm" onclick="exportReportToExcel()">
+                            <i class="fa-solid fa-file-excel me-1"></i> Export Report (Excel)
+                        </button>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover align-middle mb-0">
-                            <thead class="table-dark">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
                                 <tr>
                                     <th>Month</th>
                                     <th>Total Records</th>
@@ -123,218 +325,224 @@
                             </thead>
                             <tbody id="reportsTable">
                                 <tr>
-                                    <td colspan="5" class="text-center">Loading Report...</td>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-spinner fa-spin fs-4 d-block mb-2"></i>
+                                        Loading Report...
+                                    </td>
                                 </tr>
                             </tbody>
-                            <tfoot id="reportsFooter" class="table-secondary fw-bold">
+                            <tfoot id="reportsFooter" class="fw-bold">
                                 <!-- Totals populated dynamically -->
                             </tfoot>
                         </table>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
-</div>
 
-<!-- External SheetJS Script -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- External SheetJS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-<script>
-let reportData = [];
-let revenueChartInstance = null;
-let hoursChartInstance = null;
+    <script>
+    let reportData = [];
+    let revenueChartInstance = null;
+    let hoursChartInstance = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-    generateMonthReport();
-});
-
-function getProp(obj, propName) {
-    if (!obj) return "";
-    const key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
-    return key ? obj[key] : "";
-}
-
-function generateMonthReport() {
-    let salesData = [];
-    try {
-        const raw = localStorage.getItem("salesData");
-        if (raw) salesData = JSON.parse(raw);
-    } catch(e) {
-        console.error("Error loading localStorage:", e);
-    }
-
-    const tbody = document.getElementById("reportsTable");
-    const tfoot = document.getElementById("reportsFooter");
-
-    if (!salesData || !Array.isArray(salesData) || salesData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No sales data available. Upload data from the Dashboard first.</td></tr>`;
-        tfoot.innerHTML = "";
-        return;
-    }
-
-    // Group data by Month
-    const monthGroup = {};
-
-    salesData.forEach(item => {
-        let rawMonth = getProp(item, "month");
-        const month = rawMonth ? String(rawMonth).trim() : "Unknown";
-        
-        const hours = Number(getProp(item, "hours")) || 0;
-        const rate = Number(getProp(item, "rate")) || 0;
-        const amount = Number(getProp(item, "amount")) || (hours * rate) || 0;
-
-        if (!monthGroup[month]) {
-            monthGroup[month] = {
-                month: month,
-                records: 0,
-                hours: 0,
-                totalRate: 0,
-                amount: 0
-            };
-        }
-
-        monthGroup[month].records += 1;
-        monthGroup[month].hours += hours;
-        monthGroup[month].totalRate += rate;
-        monthGroup[month].amount += amount;
+    document.addEventListener("DOMContentLoaded", () => {
+        generateMonthReport();
     });
 
-    reportData = Object.values(monthGroup);
+    function getProp(obj, propName) {
+        if (!obj) return "";
+        const key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
+        return key ? obj[key] : "";
+    }
 
-    // Render Table Rows
-    let html = "";
-    let grandRecords = 0;
-    let grandHours = 0;
-    let grandAmount = 0;
-    let totalRateSum = 0;
+    function generateMonthReport() {
+        let salesData = [];
+        try {
+            const raw = localStorage.getItem("salesData");
+            if (raw) salesData = JSON.parse(raw);
+        } catch(e) {
+            console.error("Error loading localStorage:", e);
+        }
 
-    reportData.forEach(r => {
-        const avgRate = r.records > 0 ? Math.round(r.totalRate / r.records) : 0;
+        const tbody = document.getElementById("reportsTable");
+        const tfoot = document.getElementById("reportsFooter");
+
+        if (!salesData || !Array.isArray(salesData) || salesData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>No sales data available. Upload data from the Dashboard first.</td></tr>`;
+            tfoot.innerHTML = "";
+            return;
+        }
+
+        // Group data by Month
+        const monthGroup = {};
+
+        salesData.forEach(item => {
+            let rawMonth = getProp(item, "month");
+            const month = rawMonth ? String(rawMonth).trim() : "Unknown";
+            
+            const hours = Number(getProp(item, "hours")) || 0;
+            const rate = Number(getProp(item, "rate")) || 0;
+            const amount = Number(getProp(item, "amount")) || (hours * rate) || 0;
+
+            if (!monthGroup[month]) {
+                monthGroup[month] = {
+                    month: month,
+                    records: 0,
+                    hours: 0,
+                    totalRate: 0,
+                    amount: 0
+                };
+            }
+
+            monthGroup[month].records += 1;
+            monthGroup[month].hours += hours;
+            monthGroup[month].totalRate += rate;
+            monthGroup[month].amount += amount;
+        });
+
+        reportData = Object.values(monthGroup);
+
+        // Render Table Rows
+        let html = "";
+        let grandRecords = 0;
+        let grandHours = 0;
+        let grandAmount = 0;
+        let totalRateSum = 0;
+
+        reportData.forEach(r => {
+            const avgRate = r.records > 0 ? Math.round(r.totalRate / r.records) : 0;
+            
+            grandRecords += r.records;
+            grandHours += r.hours;
+            grandAmount += r.amount;
+            totalRateSum += r.totalRate;
+
+            html += `
+            <tr>
+                <td class="fw-bold">${r.month}</td>
+                <td>${r.records.toLocaleString()}</td>
+                <td>${r.hours.toLocaleString()} hrs</td>
+                <td>$${avgRate.toLocaleString()}</td>
+                <td class="text-success fw-bold">$${r.amount.toLocaleString()}</td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
+
+        // Render Footer Totals & KPI Cards
+        const grandAvgRate = grandRecords > 0 ? Math.round(totalRateSum / grandRecords) : 0;
         
-        grandRecords += r.records;
-        grandHours += r.hours;
-        grandAmount += r.amount;
-        totalRateSum += r.totalRate;
+        document.getElementById("kpiRevenue").innerText = `$${grandAmount.toLocaleString()}`;
+        document.getElementById("kpiRecords").innerText = grandRecords.toLocaleString();
+        document.getElementById("kpiHours").innerText = `${grandHours.toLocaleString()} hrs`;
+        document.getElementById("kpiAvgRate").innerText = `$${grandAvgRate.toLocaleString()}/hr`;
 
-        html += `
+        tfoot.innerHTML = `
         <tr>
-            <td class="fw-bold">${r.month}</td>
-            <td>${r.records.toLocaleString()}</td>
-            <td>${r.hours.toLocaleString()} hrs</td>
-            <td>$${avgRate.toLocaleString()}</td>
-            <td class="text-success fw-bold">$${r.amount.toLocaleString()}</td>
+            <td class="fw-bold">Grand Total</td>
+            <td>${grandRecords.toLocaleString()}</td>
+            <td>${grandHours.toLocaleString()} hrs</td>
+            <td>$${grandAvgRate.toLocaleString()} (Avg)</td>
+            <td class="text-success fw-bold">$${grandAmount.toLocaleString()}</td>
         </tr>`;
-    });
 
-    tbody.innerHTML = html;
-
-    // Render Footer Totals & KPI Cards
-    const grandAvgRate = grandRecords > 0 ? Math.round(totalRateSum / grandRecords) : 0;
-    
-    document.getElementById("kpiRevenue").innerText = `$${grandAmount.toLocaleString()}`;
-    document.getElementById("kpiRecords").innerText = grandRecords.toLocaleString();
-    document.getElementById("kpiHours").innerText = `${grandHours.toLocaleString()} hrs`;
-    document.getElementById("kpiAvgRate").innerText = `$${grandAvgRate.toLocaleString()}`;
-
-    tfoot.innerHTML = `
-    <tr>
-        <td>Grand Total</td>
-        <td>${grandRecords.toLocaleString()}</td>
-        <td>${grandHours.toLocaleString()} hrs</td>
-        <td>$${grandAvgRate.toLocaleString()} (Avg)</td>
-        <td class="text-success">$${grandAmount.toLocaleString()}</td>
-    </tr>`;
-
-    // Render Charts
-    renderCharts(reportData);
-}
-
-function renderCharts(data) {
-    const labels = data.map(d => d.month);
-    const amounts = data.map(d => d.amount);
-    const hours = data.map(d => d.hours);
-
-    if (revenueChartInstance) revenueChartInstance.destroy();
-    if (hoursChartInstance) hoursChartInstance.destroy();
-
-    // 1. Monthly Revenue Bar Chart
-    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-    revenueChartInstance = new Chart(ctxRevenue, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Total Amount ($)',
-                data: amounts,
-                backgroundColor: 'rgba(25, 135, 84, 0.7)',
-                borderColor: 'rgba(25, 135, 84, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 2. Monthly Hours Line Chart
-    const ctxHours = document.getElementById('hoursChart').getContext('2d');
-    hoursChartInstance = new Chart(ctxHours, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Hours Worked',
-                data: hours,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 4,
-                pointBackgroundColor: '#0d6efd'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-}
-
-function exportReportToExcel() {
-    if (!reportData || reportData.length === 0) {
-        alert("No report data available to export.");
-        return;
+        // Render Charts
+        renderCharts(reportData);
     }
 
-    const exportRows = reportData.map(r => ({
-        "Month": r.month,
-        "Total Records": r.records,
-        "Total Hours": r.hours,
-        "Avg Rate": r.records > 0 ? Math.round(r.totalRate / r.records) : 0,
-        "Total Amount": r.amount
-    }));
+    function renderCharts(data) {
+        const labels = data.map(d => d.month);
+        const amounts = data.map(d => d.amount);
+        const hours = data.map(d => d.hours);
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        if (hoursChartInstance) hoursChartInstance.destroy();
 
-    XLSX.writeFile(workbook, "Monthly_Sales_Report.xlsx");
-}
-</script>
+        // 1. Monthly Revenue Bar Chart
+        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        revenueChartInstance = new Chart(ctxRevenue, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Amount ($)',
+                    data: amounts,
+                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                    borderColor: '#2563eb',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Monthly Hours Line Chart
+        const ctxHours = document.getElementById('hoursChart').getContext('2d');
+        hoursChartInstance = new Chart(ctxHours, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Hours Worked',
+                    data: hours,
+                    borderColor: '#0284c7',
+                    backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#0284c7'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function exportReportToExcel() {
+        if (!reportData || reportData.length === 0) {
+            alert("No report data available to export.");
+            return;
+        }
+
+        const exportRows = reportData.map(r => ({
+            "Month": r.month,
+            "Total Records": r.records,
+            "Total Hours": r.hours,
+            "Avg Rate": r.records > 0 ? Math.round(r.totalRate / r.records) : 0,
+            "Total Amount": r.amount
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Report");
+
+        XLSX.writeFile(workbook, "Monthly_Sales_Report.xlsx");
+    }
+    </script>
 
 </body>
 </html>
