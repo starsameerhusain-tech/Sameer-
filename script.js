@@ -1,8 +1,10 @@
 // Global dataset stores
 let salesData = [];
-let currentFilteredData = []; // Keeps track of currently visible/filtered rows
+let currentFilteredData = []; // Strictly tracks what is currently visible on screen
 
+// ------------------------------------------
 // 1. Upload & Parse Excel File
+// ------------------------------------------
 function uploadExcel() {
     const fileInput = document.getElementById("excelFile");
     const file = fileInput ? fileInput.files[0] : null;
@@ -89,8 +91,12 @@ function uploadExcel() {
     reader.readAsArrayBuffer(file);
 }
 
-// 2. Combined Filter Engine: Updates Table, Cards & Active Export Data
-function filterAll() {
+// ------------------------------------------
+// 2. Filter Function (Unified Engine)
+// ------------------------------------------
+function filterAll(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
     const nameInput = document.getElementById("customerSearch");
     const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
@@ -99,7 +105,7 @@ function filterAll() {
     const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
-    // Filter master array
+    // Store strictly into currentFilteredData
     currentFilteredData = salesData.filter(item => {
         const nameVal = (item.name || "").toLowerCase();
         const emailVal = (item.email || "").toLowerCase();
@@ -112,14 +118,18 @@ function filterAll() {
         return matchesName && matchesEmail && matchesMonth;
     });
 
-    // Update Table
     renderTable(currentFilteredData);
-
-    // Update Dashboard Cards
     renderDashboard(currentFilteredData);
 }
 
-// 3. Render Table Function
+// Alias searchData to filterAll to ensure backward compatibility
+function searchData(e) {
+    filterAll(e);
+}
+
+// ------------------------------------------
+// 3. Render Table
+// ------------------------------------------
 function renderTable(data) {
     const tbody = document.getElementById("salesTable");
     if (!tbody) return;
@@ -149,7 +159,9 @@ function renderTable(data) {
     tbody.innerHTML = html;
 }
 
-// 4. Render Dashboard KPI Cards Function
+// ------------------------------------------
+// 4. Render Dashboard KPI Cards
+// ------------------------------------------
 function renderDashboard(data) {
     const totalSales = data.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const totalHours = data.reduce((sum, item) => sum + (Number(item.hours) || 0), 0);
@@ -157,21 +169,32 @@ function renderDashboard(data) {
         ? Math.round(data.reduce((sum, item) => sum + (Number(item.rate) || 0), 0) / data.length) 
         : 0;
 
-    document.getElementById("totalSales").innerText = totalSales.toLocaleString();
-    document.getElementById("totalCustomers").innerText = data.length.toLocaleString();
-    document.getElementById("totalProducts").innerText = totalHours.toLocaleString();
-    document.getElementById("totalQty").innerText = avgRate.toLocaleString();
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+    };
+
+    setEl("totalSales", totalSales.toLocaleString());
+    setEl("totalCustomers", data.length.toLocaleString());
+    setEl("totalProducts", totalHours.toLocaleString());
+    setEl("totalQty", avgRate.toLocaleString());
 }
 
-// 5. Download Excel (.xlsx) - Active for Filtered and Unfiltered Data
+// ------------------------------------------
+// 5. Download Excel (.xlsx) — Active for Filtered/Unfiltered
+// ------------------------------------------
 function downloadExcel() {
-    if (!currentFilteredData || currentFilteredData.length === 0) {
+    const dataToExport = (currentFilteredData && currentFilteredData.length > 0) 
+        ? currentFilteredData 
+        : salesData;
+
+    if (!dataToExport || dataToExport.length === 0) {
         alert("No data available to download.");
         return;
     }
 
-    // Format data with exact header labels for clean Excel output
-    const formattedData = currentFilteredData.map(r => ({
+    // Format headers cleanly
+    const formattedData = dataToExport.map(r => ({
         "Month": r.month,
         "Project Name": r.projectName,
         "Email ID": r.email,
@@ -184,24 +207,30 @@ function downloadExcel() {
         "Project Code": r.projectCode
     }));
 
-    // Create Worksheet & Workbook using xlsx.full.min.js
+    // Build Excel file
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Records");
 
-    // Download file
+    // Download
     XLSX.writeFile(workbook, "SalesData_Export.xlsx");
 }
 
-// 6. Download CSV (.csv) - Active for Filtered and Unfiltered Data
+// ------------------------------------------
+// 6. Download CSV (.csv) — Active for Filtered/Unfiltered
+// ------------------------------------------
 function downloadCSV() {
-    if (!currentFilteredData || currentFilteredData.length === 0) {
+    const dataToExport = (currentFilteredData && currentFilteredData.length > 0) 
+        ? currentFilteredData 
+        : salesData;
+
+    if (!dataToExport || dataToExport.length === 0) {
         alert("No data available to download.");
         return;
     }
 
     let csv = "Month,Project Name,Email ID,Name,Source,Language,Rate,Hours,Amount,Project Code\n";
-    currentFilteredData.forEach(r => {
+    dataToExport.forEach(r => {
         csv += `"${r.month}","${r.projectName}","${r.email}","${r.name}","${r.source}","${r.language}",${r.rate},${r.hours},${r.amount},"${r.projectCode}"\n`;
     });
 
@@ -214,7 +243,9 @@ function downloadCSV() {
     URL.revokeObjectURL(url);
 }
 
-// 7. Page Initialization
+// ------------------------------------------
+// 7. Initialization
+// ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     try {
         const saved = localStorage.getItem("salesData");
