@@ -214,7 +214,7 @@
             color: white;
         }
 
-        /* Style for inline edit inputs */
+        /* Inline Input Editing Styles */
         .edit-input {
             width: 100%;
             padding: 4px 8px;
@@ -248,7 +248,7 @@
         <div class="row">
             <!-- Sidebar Navigation -->
             <div class="col-md-2 sidebar p-3 d-none d-md-block">
-                <div class="text-uppercase small fw-bold text-slate-400 mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
+                <div class="text-uppercase small fw-bold mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
                 <ul class="nav flex-column gap-2">
                     <li class="nav-item">
                         <a href="index.html" class="nav-link active">
@@ -266,14 +266,14 @@
             <!-- Main Content Area -->
             <div class="col-md-10 p-4">
                 
-                <!-- KPI Dashboard Cards with Soft Color Fills -->
+                <!-- KPI Dashboard Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
                         <div class="kpi-card kpi-card-blue">
                             <div class="kpi-icon-wrapper text-primary">
                                 <i class="fa-solid fa-dollar-sign"></i>
                             </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
                             <div class="fs-2 fw-bold text-dark" id="totalAmount">$0</div>
                         </div>
                     </div>
@@ -282,7 +282,7 @@
                             <div class="kpi-icon-wrapper text-success">
                                 <i class="fa-solid fa-cart-shopping"></i>
                             </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Orders</div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Orders</div>
                             <div class="fs-2 fw-bold text-dark" id="totalRecords">0</div>
                         </div>
                     </div>
@@ -291,7 +291,7 @@
                             <div class="kpi-icon-wrapper" style="color: #9333ea;">
                                 <i class="fa-solid fa-clock"></i>
                             </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
                             <div class="fs-2 fw-bold text-dark" id="totalHours">0 hrs</div>
                         </div>
                     </div>
@@ -300,7 +300,7 @@
                             <div class="kpi-icon-wrapper text-warning">
                                 <i class="fa-solid fa-calculator"></i>
                             </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
+                            <div class="text-uppercase small fw-bold mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
                             <div class="fs-2 fw-bold text-dark" id="avgRate">$0/hr</div>
                         </div>
                     </div>
@@ -337,18 +337,18 @@
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label small text-muted fw-bold">Search Name</label>
-                                <input type="text" id="searchName" class="form-control" placeholder="Search by name...">
+                                <input type="text" id="searchName" class="form-control" placeholder="Search by name..." oninput="handleSearch()">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small text-muted fw-bold">Filter Email</label>
-                                <input type="text" id="searchEmail" class="form-control" placeholder="Search by email...">
+                                <input type="text" id="searchEmail" class="form-control" placeholder="Search by email..." oninput="handleSearch()">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small text-muted fw-bold">Select Month</label>
-                                <input type="text" id="searchMonth" class="form-control" placeholder="e.g. January">
+                                <input type="text" id="searchMonth" class="form-control" placeholder="e.g. January" oninput="handleSearch()">
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" id="searchBtn" class="btn btn-dark w-100 rounded-3 border fw-semibold" style="padding: 10px;">
+                                <button type="button" id="resetBtn" class="btn btn-dark w-100 rounded-3 border fw-semibold" style="padding: 10px;" onclick="resetFilters()">
                                     <i class="fa-solid fa-rotate-left me-1"></i> Reset
                                 </button>
                             </div>
@@ -375,7 +375,7 @@
                                     <th>Hours</th>
                                     <th>Amount</th>
                                     <th>Code</th>
-                                    <th class="text-center" style="width: 100px;">Action</th>
+                                    <th class="text-center" style="width: 120px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="salesTableBody">
@@ -396,7 +396,7 @@
 
     <!-- SheetJS Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Custom JS logic -->
-    <script src="script.js"></script>
+    <!-- Custom JS logic with version query parameter to bypass GitHub Pages cache -->
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>
