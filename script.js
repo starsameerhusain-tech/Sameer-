@@ -1,164 +1,172 @@
-// =========================================================================
-// 1. CONFIGURATION
-// =========================================================================
-// Replace the link below with your Google Apps Script Web App URL
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvMtq1wd_xOeAyeyNo3DYnGcxlENSgrUEfB8xkuzunz7QBqBVyhKXHRT3LuLBb6jNQTw/exec";
+// Global Configuration
+// Paste your Web App URL here (Must end in /exec)
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvMtq1wd_xOeAyeyNo3DYnGcxlENSgrUEfB8xkuzunz7QBqBVyhKXHRT3LuLBb6jNQTw/exec"; 
 
+// State Management
+let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
 
-// =========================================================================
-// 2. INITIALIZATION
-// =========================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    loadSalesData();
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function () {
+    updateDashboardUI();
+    renderTable(salesData);
+
+    // Attach File Upload Event Listener
+    const uploadBtn = document.getElementById('uploadBtn');
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', handleFileUpload);
+    }
 });
 
+// Handle Excel / CSV Upload
+function handleFileUpload() {
+    const fileInput = document.getElementById('excelFile');
+    const statusMsg = document.getElementById('uploadStatus');
 
-// =========================================================================
-// 3. CORE EXCEL UPLOAD & DATA PARSING
-// =========================================================================
-function uploadExcel() {
-    const fileInput = document.getElementById("fileInput");
-    const file = fileInput ? fileInput.files[0] : null;
-
-    if (!file) {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert("Please select an Excel or CSV file first!");
         return;
     }
 
+    const file = fileInput.files[0];
     const reader = new FileReader();
 
     reader.onload = function (e) {
         try {
             const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
+            const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-
-            // Convert raw sheet data into JSON objects
+            
+            // Convert to JSON
             const rawJson = XLSX.utils.sheet_to_json(worksheet);
 
-            if (!rawJson || rawJson.length === 0) {
-                alert("Uploaded file contains no data!");
+            if (!rawJson.length) {
+                alert("The selected file contains no data.");
                 return;
             }
 
-            // Normalize JSON data keys to match the system schema
-            const formattedData = rawJson.map(row => {
-                const rate = Number(getProp(row, "rate")) || 0;
-                const hours = Number(getProp(row, "hours")) || 0;
-                const amount = Number(getProp(row, "amount")) || (rate * hours);
+            // Map incoming data to schema fields
+            const formattedData = rawJson.map(row => ({
+                month: row['Month'] || row['month'] || '',
+                projectName: row['Project Name'] || row['projectName'] || '',
+                emailId: row['Email ID'] || row['emailId'] || '',
+                name: row['Name'] || row['name'] || '',
+                source: row['Source'] || row['source'] || '',
+                language: row['Language'] || row['language'] || '',
+                rate: parseFloat(row['Rate'] || row['rate'] || 0),
+                hours: parseFloat(row['Hours'] || row['hours'] || 0),
+                amount: parseFloat(row['Amount'] || row['amount'] || 0),
+                projectCode: row['Project Code'] || row['projectCode'] || ''
+            }));
 
-                return {
-                    month: String(getProp(row, "month")).trim(),
-                    projectName: String(getProp(row, "project name") || getProp(row, "projectname")).trim(),
-                    emailId: String(getProp(row, "email id") || getProp(row, "emailid") || getProp(row, "email")).trim(),
-                    name: String(getProp(row, "name")).trim(),
-                    source: String(getProp(row, "source")).trim(),
-                    language: String(getProp(row, "language")).trim(),
-                    rate: rate,
-                    hours: hours,
-                    amount: amount,
-                    projectCode: String(getProp(row, "project code") || getProp(row, "projectcode")).trim()
-                };
-            });
-
-            // 1. Save to LocalStorage for local dashboard & reports.html
-            localStorage.setItem("salesData", JSON.stringify(formattedData));
+            // 1. Update Local UI Data
+            salesData = formattedData;
+            localStorage.setItem('salesData', JSON.stringify(salesData));
             
-            // 2. Refresh the local UI table
-            loadSalesData();
+            // 2. Refresh UI
+            updateDashboardUI();
+            renderTable(salesData);
 
-            // 3. Push data to Google Sheets in background
+            // 3. Dispatch to Google Sheets Backend
             sendToGoogleSheet(formattedData);
 
-            alert(`Success! ${formattedData.length} records processed and sent to Google Sheets.`);
+            if (statusMsg) {
+                statusMsg.className = "text-success fw-bold mt-2 d-block";
+                statusMsg.innerHTML = `✓ ${formattedData.length} records saved locally and sent to Google Sheets!`;
+            }
 
-        } catch (error) {
-            console.error("Error parsing file:", error);
-            alert("Failed to process file. Please upload a valid Excel (.xlsx) or CSV file.");
+        } catch (err) {
+            console.error("Error parsing file:", err);
+            alert("Error reading file. Please upload a valid .xlsx or .csv file.");
         }
     };
 
     reader.readAsArrayBuffer(file);
 }
 
-
-// =========================================================================
-// 4. GOOGLE SHEETS API SYNC (FIXED CORS & CONTENT-TYPE)
-// =========================================================================
-async function sendToGoogleSheet(data) {
-    if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("PASTE_YOUR_GOOGLE_WEB_APP_URL_HERE")) {
-        console.warn("Google Sheet URL is not configured in script.js!");
+// Send Data to Google Apps Script
+function sendToGoogleSheet(data) {
+    if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("YOUR_DEPLOYMENT_ID_HERE")) {
+        console.warn("Google Sheet URL is not configured properly in script.js");
         return;
     }
 
-    try {
-        // Send as text/plain to avoid CORS pre-flight OPTIONS blocks from Google Apps Script
-        await fetch(GOOGLE_SHEET_URL, {
-            method: "POST",
-            mode: "no-cors", 
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify(data)
-        });
-
+    fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'text/plain'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
         console.log("Data successfully dispatched to Google Sheet!");
-    } catch (err) {
-        console.error("Error syncing to Google Sheet:", err);
-    }
+    })
+    .catch(error => {
+        console.error("Error sending data to Google Sheet:", error);
+    });
 }
 
+// Refresh Dashboard KPI Cards
+function updateDashboardUI() {
+    const totalAmountElem = document.getElementById('totalAmount');
+    const totalRecordsElem = document.getElementById('totalRecords');
+    const totalHoursElem = document.getElementById('totalHours');
+    const avgRateElem = document.getElementById('avgRate');
 
-// =========================================================================
-// 5. HELPER FUNCTIONS & RENDER LOGIC
-// =========================================================================
-
-// Robust case-insensitive and space-insensitive column matcher
-function getProp(obj, propName) {
-    if (!obj) return "";
-    const cleanProp = propName.toLowerCase().replace(/[\s_]/g, '');
-    const key = Object.keys(obj).find(k => k.toLowerCase().replace(/[\s_]/g, '') === cleanProp);
-    return key ? obj[key] : "";
-}
-
-// Render data to index.html dashboard table
-function loadSalesData() {
-    const raw = localStorage.getItem("salesData");
-    const tbody = document.getElementById("salesTableBody");
-    if (!tbody) return; // Exit if called from a page without the table element
-
-    if (!raw) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No sales data loaded. Upload a file above.</td></tr>`;
+    if (!salesData.length) {
+        if (totalAmountElem) totalAmountElem.innerText = "0";
+        if (totalRecordsElem) totalRecordsElem.innerText = "0";
+        if (totalHoursElem) totalHoursElem.innerText = "0";
+        if (avgRateElem) avgRateElem.innerText = "0";
         return;
     }
 
-    try {
-        const salesData = JSON.parse(raw);
-        if (!Array.isArray(salesData) || salesData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No sales data available.</td></tr>`;
-            return;
-        }
+    let totalAmount = 0;
+    let totalHours = 0;
+    let totalRate = 0;
 
-        let html = "";
-        salesData.forEach((row) => {
-            html += `
-            <tr>
-                <td>${row.month || '-'}</td>
-                <td>${row.projectName || '-'}</td>
-                <td>${row.emailId || '-'}</td>
-                <td>${row.name || '-'}</td>
-                <td>${row.source || '-'}</td>
-                <td>${row.language || '-'}</td>
-                <td>$${row.rate}</td>
-                <td>${row.hours} hrs</td>
-                <td class="fw-bold text-success">$${row.amount.toLocaleString()}</td>
-                <td><span class="badge bg-secondary">${row.projectCode || '-'}</span></td>
-            </tr>`;
-        });
+    salesData.forEach(item => {
+        totalAmount += item.amount || 0;
+        totalHours += item.hours || 0;
+        totalRate += item.rate || 0;
+    });
 
-        tbody.innerHTML = html;
-    } catch(e) {
-        console.error("Error rendering table:", e);
+    const avgRate = salesData.length ? (totalRate / salesData.length).toFixed(0) : 0;
+
+    if (totalAmountElem) totalAmountElem.innerText = totalAmount.toLocaleString();
+    if (totalRecordsElem) totalRecordsElem.innerText = salesData.length;
+    if (totalHoursElem) totalHoursElem.innerText = totalHours.toLocaleString();
+    if (avgRateElem) avgRateElem.innerText = avgRate;
+}
+
+// Render Records Table
+function renderTable(data) {
+    const tbody = document.getElementById('salesTableBody');
+    if (!tbody) return;
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-3 text-muted">No Data Available</td></tr>`;
+        return;
     }
+
+    let rowsHtml = '';
+    data.forEach(item => {
+        rowsHtml += `
+            <tr>
+                <td>${item.month}</td>
+                <td>${item.projectName}</td>
+                <td>${item.emailId}</td>
+                <td>${item.name}</td>
+                <td>${item.source}</td>
+                <td>${item.language}</td>
+                <td>${item.rate}</td>
+                <td>${item.hours}</td>
+                <td>${item.amount}</td>
+                <td>${item.projectCode}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = rowsHtml;
 }
