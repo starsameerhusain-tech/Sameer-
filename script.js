@@ -14,7 +14,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (uploadBtn) {
         uploadBtn.addEventListener('click', handleFileUpload);
     }
+
+    // Attach Search Event Listener
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', handleSearch);
+    }
 });
+
+// Handle Search Filtering
+function handleSearch() {
+    const nameQuery = (document.getElementById('searchName')?.value || '').toLowerCase().trim();
+    const emailQuery = (document.getElementById('searchEmail')?.value || '').toLowerCase().trim();
+    const monthQuery = (document.getElementById('searchMonth')?.value || '').toLowerCase().trim();
+
+    const filteredData = salesData.filter(item => {
+        const matchesName = !nameQuery || (item.name || '').toLowerCase().includes(nameQuery);
+        const matchesEmail = !emailQuery || (item.emailId || '').toLowerCase().includes(emailQuery);
+        const matchesMonth = !monthQuery || (item.month || '').toLowerCase().includes(monthQuery);
+
+        return matchesName && matchesEmail && matchesMonth;
+    });
+
+    renderTable(filteredData);
+}
 
 // Handle Excel / CSV Upload
 function handleFileUpload() {
