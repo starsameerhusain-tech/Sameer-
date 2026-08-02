@@ -1,6 +1,5 @@
 // ==========================================
-// Sales Management System - Position-Based Fix
-// With Automatic Data Persistence & Dynamic Search Dashboard
+// Sales Management System - Dynamic Metrics Fix
 // ==========================================
 
 let salesData = [];
@@ -40,11 +39,10 @@ function uploadExcel() {
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Find the exact row index where data starts (Row containing 'January' or data)
+            // Find the exact row index where data starts
             let startRowIndex = -1;
             for (let i = 0; i < rawRows.length; i++) {
                 const firstColValue = String(rawRows[i][0] || "").trim().toLowerCase();
-                // Skip header row ("month") and find actual month data
                 if (firstColValue && firstColValue !== "month") {
                     startRowIndex = i;
                     break;
@@ -52,7 +50,6 @@ function uploadExcel() {
             }
 
             if (startRowIndex === -1) {
-                // Fallback: If no "Month" header was found, assume row 1 is data (index 1)
                 startRowIndex = 1;
             }
 
@@ -67,28 +64,24 @@ function uploadExcel() {
                 const projVal  = String(row[1] || "").trim();
                 const emailVal = String(row[2] || "").trim();
 
-                // Stop or skip if the row is completely empty
                 if (!monthVal && !projVal && !emailVal) continue;
 
                 salesData.push({
-                    month:       monthVal,                   // Col A (Index 0)
-                    projectName: projVal,                    // Col B (Index 1)
-                    email:       emailVal,                   // Col C (Index 2)
-                    name:        String(row[3] || "").trim(),// Col D (Index 3)
-                    source:      String(row[4] || "").trim(),// Col E (Index 4)
-                    language:    String(row[5] || "").trim(),// Col F (Index 5)
-                    rate:        parseNum(row[6]),           // Col G (Index 6)
-                    hours:       parseNum(row[7]),           // Col H (Index 7)
-                    amount:      parseNum(row[8]),           // Col I (Index 8)
-                    projectCode: String(row[9] || "").trim() // Col J (Index 9)
+                    month:       monthVal,
+                    projectName: projVal,
+                    email:       emailVal,
+                    name:        String(row[3] || "").trim(),
+                    source:      String(row[4] || "").trim(),
+                    language:    String(row[5] || "").trim(),
+                    rate:        parseNum(row[6]),
+                    hours:       parseNum(row[7]),
+                    amount:      parseNum(row[8]),
+                    projectCode: String(row[9] || "").trim()
                 });
             }
 
-            // Save the data to browser memory before loading UI
-            localStorage.setItem("savedSalesData", JSON.stringify(salesData));
-
             loadTable(salesData);
-            updateDashboard(salesData); // Updates dashboard with full dataset initially
+            updateDashboard(salesData); // Update metrics with full dataset
 
             const statusEl = document.getElementById("uploadStatus");
             if (statusEl) {
@@ -136,12 +129,9 @@ function loadTable(data) {
 }
 
 // ------------------------------------------
-// 3. Update Dashboard Cards (Now accepts data dynamic parameters)
+// 3. Dynamic Dashboard Cards (Accepts Dataset)
 // ------------------------------------------
-function updateDashboard(dataToCalculate) {
-    // If no data array is specifically given, fallback safely to the full salesData array
-    const currentData = dataToCalculate || salesData;
-
+function updateDashboard(currentData = salesData) {
     const setSafeText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = text;
@@ -160,7 +150,7 @@ function updateDashboard(dataToCalculate) {
 }
 
 // ------------------------------------------
-// 4. Live Search (Name, Email ID, & Month)
+// 4. Live Search (Updates Table & Dashboard)
 // ------------------------------------------
 function searchData(e) {
     if (e && e.preventDefault) {
@@ -187,8 +177,9 @@ function searchData(e) {
         return matchesName && matchesEmail && matchesMonth;
     });
 
+    // Update both table and dashboard cards with the filtered data
     loadTable(filtered);
-    updateDashboard(filtered); // <-- Dynamic Update: Calculate numbers only for matched records!
+    updateDashboard(filtered);
 }
 
 // ------------------------------------------
@@ -222,25 +213,6 @@ function downloadExcel() {
 // 6. Automatic Initialization & Key Listeners
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-    // CHECK FOR PREVIOUSLY SAVED DATA
-    const rawSavedData = localStorage.getItem("savedSalesData");
-    if (rawSavedData) {
-        try {
-            salesData = JSON.parse(rawSavedData);
-            
-            // Re-render table elements automatically
-            loadTable(salesData);
-            
-            // Set success notification for saved numbers
-            const statusEl = document.getElementById("uploadStatus");
-            if (statusEl) {
-                statusEl.innerHTML = "🔄 Loaded " + salesData.length + " records from browser memory.";
-            }
-        } catch (e) {
-            console.error("Failed to load historical cache:", e);
-        }
-    }
-
     const nameInput = document.getElementById("customerSearch");
     const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
@@ -249,6 +221,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (emailInput) emailInput.addEventListener("input", searchData);
     if (monthInput) monthInput.addEventListener("input", searchData);
 
-    // Refresh the top dashboard numbers card layout
-    updateDashboard(salesData);
+    updateDashboard();
 });
