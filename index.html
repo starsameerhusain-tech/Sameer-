@@ -13,10 +13,10 @@
     
     <style>
         :root {
-            --bg-main: #f8fafc;
+            --bg-main: #edf2f7;
             --sidebar-bg: #0f172a;
             --sidebar-hover: #1e293b;
-            --primary-accent: #3b82f6;
+            --primary-accent: #2563eb;
             --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             --card-radius: 16px;
         }
@@ -29,8 +29,7 @@
 
         /* Top Navbar */
         .navbar-custom {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.98);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -64,22 +63,38 @@
             box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
         }
 
-        /* Modern KPI Cards */
+        /* Vibrant Accent Metric Cards */
         .kpi-card {
-            border: 1px solid #e2e8f0;
+            border: none;
             border-radius: var(--card-radius);
-            background: #ffffff;
             padding: 24px;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
         }
 
         .kpi-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-            border-color: #cbd5e1;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Custom Soft Color Fills for KPI Cards */
+        .kpi-card-blue {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 5px solid #0284c7;
+        }
+        .kpi-card-green {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-left: 5px solid #16a34a;
+        }
+        .kpi-card-purple {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 5px solid #9333ea;
+        }
+        .kpi-card-amber {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #d97706;
         }
 
         .kpi-icon-wrapper {
@@ -91,88 +106,96 @@
             justify-content: center;
             font-size: 1.25rem;
             margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
 
-        .bg-blue-subtle-custom { background: #eff6ff; color: #2563eb; }
-        .bg-green-subtle-custom { background: #ecfdf5; color: #10b981; }
-        .bg-purple-subtle-custom { background: #f5f3ff; color: #8b5cf6; }
-        .bg-amber-subtle-custom { background: #fffbebf; color: #f59e0b; }
-
-        /* Panels */
+        /* Panels with Subtle Slate Background */
         .panel-card {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
             border-radius: var(--card-radius);
-            background: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            background: #f8fafc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        .panel-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f5f9;
+        .panel-header-blue {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
             font-weight: 700;
-            font-size: 1rem;
-            color: #0f172a;
         }
 
-        /* Custom Input Controls */
+        .panel-header-teal {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 16px 24px;
+            border-top-left-radius: calc(var(--card-radius) - 1px);
+            border-top-right-radius: calc(var(--card-radius) - 1px);
+            font-weight: 700;
+        }
+
+        /* Input Controls */
         .form-control {
             border-radius: 10px;
             border: 1px solid #cbd5e1;
+            background-color: #ffffff;
             padding: 10px 16px;
             font-size: 0.95rem;
-            transition: all 0.2s;
         }
 
         .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
         }
 
-        /* Custom Drag & Drop File Area */
+        /* Upload Area */
         .file-upload-wrapper {
-            border: 2px dashed #cbd5e1;
+            border: 2px dashed #94a3b8;
             border-radius: 12px;
             padding: 16px;
-            background-color: #f8fafc;
+            background-color: #ffffff;
             transition: all 0.2s;
             text-align: center;
         }
 
         .file-upload-wrapper:hover {
-            border-color: #3b82f6;
+            border-color: #2563eb;
             background-color: #eff6ff;
         }
 
-        /* Styled Table */
+        /* Table Design */
         .table-custom {
             margin-bottom: 0;
+            background-color: #ffffff;
         }
 
         .table-custom thead th {
-            background-color: #f8fafc;
-            color: #64748b;
+            background-color: #334155;
+            color: #f8fafc;
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             padding: 14px 20px;
-            border-bottom: 1px solid #e2e8f0;
+            border: none;
         }
 
         .table-custom tbody td {
-            padding: 16px 20px;
+            padding: 14px 20px;
             color: #334155;
             font-size: 0.9rem;
             font-weight: 500;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .table-custom tbody tr {
-            transition: background 0.15s;
+        .table-custom tbody tr:nth-child(even) {
+            background-color: #f1f5f9;
         }
 
         .table-custom tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: #e2e8f0;
         }
 
         .btn-gradient-primary {
@@ -180,15 +203,14 @@
             color: white;
             border: none;
             border-radius: 10px;
-            padding: 10px 24px;
+            padding: 12px 24px;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
             transition: all 0.2s;
         }
 
         .btn-gradient-primary:hover {
             opacity: 0.95;
-            transform: translateY(-1px);
             color: white;
         }
     </style>
@@ -205,8 +227,8 @@
                 Sales Analytics Suite
             </span>
             <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-emerald-100 text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
-                    <i class="fa-solid fa-circle-dot text-success me-1 style="font-size: 10px;"></i> System Operational
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
+                    <i class="fa-solid fa-circle text-white me-1" style="font-size: 8px;"></i> System Live
                 </span>
             </div>
         </div>
@@ -216,16 +238,16 @@
         <div class="row">
             <!-- Sidebar Navigation -->
             <div class="col-md-2 sidebar p-3 d-none d-md-block">
-                <div class="text-uppercase small fw-bold text-slate-400 mb-3 px-2 style="letter-spacing: 0.05em; font-size: 0.7rem;">Menu Navigation</div>
+                <div class="text-uppercase small fw-bold text-slate-400 mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
                 <ul class="nav flex-column gap-2">
                     <li class="nav-item">
                         <a href="index.html" class="nav-link active">
-                            <i class="fa-solid fa-grid-2 me-1"></i> Dashboard
+                            <i class="fa-solid fa-house me-1"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="reports.html" class="nav-link">
-                            <i class="fa-solid fa-chart-simple me-1"></i> Reports
+                            <i class="fa-solid fa-chart-pie me-1"></i> Reports
                         </a>
                     </li>
                 </ul>
@@ -234,50 +256,50 @@
             <!-- Main Content Area -->
             <div class="col-md-10 p-4">
                 
-                <!-- KPI Dashboard Cards -->
+                <!-- KPI Dashboard Cards with Soft Color Fills -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
-                        <div class="kpi-card">
-                            <div class="kpi-icon-wrapper bg-blue-subtle-custom">
+                        <div class="kpi-card kpi-card-blue">
+                            <div class="kpi-icon-wrapper text-primary">
                                 <i class="fa-solid fa-dollar-sign"></i>
                             </div>
-                            <div class="text-muted small fw-semibold text-uppercase mb-1" style="letter-spacing: 0.05em;">Total Revenue</div>
-                            <div class="fs-2 fw-extrabold text-slate-900" id="totalAmount">$0</div>
+                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalAmount">$0</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="kpi-card">
-                            <div class="kpi-icon-wrapper bg-green-subtle-custom">
+                        <div class="kpi-card kpi-card-green">
+                            <div class="kpi-icon-wrapper text-success">
                                 <i class="fa-solid fa-cart-shopping"></i>
                             </div>
-                            <div class="text-muted small fw-semibold text-uppercase mb-1" style="letter-spacing: 0.05em;">Total Orders</div>
-                            <div class="fs-2 fw-extrabold text-slate-900" id="totalRecords">0</div>
+                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Orders</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalRecords">0</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="kpi-card">
-                            <div class="kpi-icon-wrapper bg-purple-subtle-custom">
-                                <i class="fa-solid fa-stopwatch"></i>
+                        <div class="kpi-card kpi-card-purple">
+                            <div class="kpi-icon-wrapper" style="color: #9333ea;">
+                                <i class="fa-solid fa-clock"></i>
                             </div>
-                            <div class="text-muted small fw-semibold text-uppercase mb-1" style="letter-spacing: 0.05em;">Total Hours</div>
-                            <div class="fs-2 fw-extrabold text-slate-900" id="totalHours">0 hrs</div>
+                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
+                            <div class="fs-2 fw-bold text-dark" id="totalHours">0 hrs</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="kpi-card">
-                            <div class="kpi-icon-wrapper bg-amber-subtle-custom">
-                                <i class="fa-solid fa-gauge-high"></i>
+                        <div class="kpi-card kpi-card-amber">
+                            <div class="kpi-icon-wrapper text-warning">
+                                <i class="fa-solid fa-calculator"></i>
                             </div>
-                            <div class="text-muted small fw-semibold text-uppercase mb-1" style="letter-spacing: 0.05em;">Avg Hourly Rate</div>
-                            <div class="fs-2 fw-extrabold text-slate-900" id="avgRate">$0/hr</div>
+                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
+                            <div class="fs-2 fw-bold text-dark" id="avgRate">$0/hr</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- File Import Section -->
-                <div class="card panel-card mb-4">
-                    <div class="panel-header d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-up text-primary fs-5"></i> Data Ingestion & Sync
+                <div class="card panel-card mb-4 overflow-hidden">
+                    <div class="panel-header-blue d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-info"></i> Data Ingestion & Sync
                     </div>
                     <div class="card-body p-4">
                         <div class="row g-3 align-items-center">
@@ -287,7 +309,7 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <button type="button" id="uploadBtn" class="btn btn-gradient-primary w-100 py-3">
+                                <button type="button" id="uploadBtn" class="btn btn-gradient-primary w-100">
                                     <i class="fa-solid fa-upload me-2"></i>Upload File
                                 </button>
                             </div>
@@ -297,10 +319,9 @@
                 </div>
 
                 <!-- Search & Filters Panel -->
-                <div class="card panel-card mb-4">
-                    <div class="panel-header d-flex align-items-center justify-content-between">
-                        <span><i class="fa-solid fa-magnifying-glass text-secondary me-2"></i> Search & Filters</span>
-                        <span class="badge bg-light text-dark border font-monospace">Live Filter Active</span>
+                <div class="card panel-card mb-4 overflow-hidden">
+                    <div class="panel-header-teal d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-filter text-info me-2"></i> Quick Filters</span>
                     </div>
                     <div class="card-body p-4">
                         <div class="row g-3">
@@ -317,7 +338,7 @@
                                 <input type="text" id="searchMonth" class="form-control" placeholder="e.g. January">
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" id="searchBtn" class="btn btn-outline-slate w-100 rounded-3 border fw-semibold style="padding: 10px; background: #f8fafc;">
+                                <button type="button" id="searchBtn" class="btn btn-dark w-100 rounded-3 border fw-semibold" style="padding: 10px;">
                                     <i class="fa-solid fa-rotate-left me-1"></i> Reset
                                 </button>
                             </div>
@@ -327,8 +348,8 @@
 
                 <!-- Table Container -->
                 <div class="card panel-card overflow-hidden">
-                    <div class="panel-header d-flex align-items-center justify-content-between">
-                        <span><i class="fa-solid fa-database text-primary me-2"></i> Sales Database Records</span>
+                    <div class="panel-header-blue d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-table me-2"></i> Sales Records</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-custom align-middle">
@@ -349,7 +370,7 @@
                             <tbody id="salesTableBody">
                                 <tr>
                                     <td colspan="10" class="text-center py-5 text-muted">
-                                        <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-slate-300"></i>
+                                        <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
                                         No Data Available
                                     </td>
                                 </tr>
