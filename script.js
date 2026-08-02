@@ -15,11 +15,28 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadBtn.addEventListener('click', handleFileUpload);
     }
 
-    // Attach Search Event Listener
+    // Attach Search Event Listeners (Triggers on click AND as you type)
     const searchBtn = document.getElementById('searchBtn');
     if (searchBtn) {
-        searchBtn.addEventListener('click', handleSearch);
+        searchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleSearch();
+        });
     }
+
+    // Live search as you type in any search box
+    ['searchName', 'searchEmail', 'searchMonth'].forEach(id => {
+        const inputElem = document.getElementById(id);
+        if (inputElem) {
+            inputElem.addEventListener('input', handleSearch);
+            inputElem.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
+                }
+            });
+        }
+    });
 });
 
 // Handle Search Filtering
@@ -28,10 +45,21 @@ function handleSearch() {
     const emailQuery = (document.getElementById('searchEmail')?.value || '').toLowerCase().trim();
     const monthQuery = (document.getElementById('searchMonth')?.value || '').toLowerCase().trim();
 
+    // If all search inputs are empty, show full data
+    if (!nameQuery && !emailQuery && !monthQuery) {
+        renderTable(salesData);
+        return;
+    }
+
     const filteredData = salesData.filter(item => {
-        const matchesName = !nameQuery || (item.name || '').toLowerCase().includes(nameQuery);
-        const matchesEmail = !emailQuery || (item.emailId || '').toLowerCase().includes(emailQuery);
-        const matchesMonth = !monthQuery || (item.month || '').toLowerCase().includes(monthQuery);
+        // Safe string conversions
+        const nameVal = String(item.name || item.Name || '').toLowerCase();
+        const emailVal = String(item.emailId || item['Email ID'] || '').toLowerCase();
+        const monthVal = String(item.month || item.Month || '').toLowerCase();
+
+        const matchesName = !nameQuery || nameVal.includes(nameQuery);
+        const matchesEmail = !emailQuery || emailVal.includes(emailQuery);
+        const matchesMonth = !monthQuery || monthVal.includes(monthQuery);
 
         return matchesName && matchesEmail && matchesMonth;
     });
@@ -168,7 +196,7 @@ function renderTable(data) {
     if (!tbody) return;
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-3 text-muted">No Data Available</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted fw-bold">No Matching Records Found</td></tr>`;
         return;
     }
 
