@@ -1,6 +1,9 @@
 // Global dataset stores
 let salesData = [];
-let currentFilteredData = []; // Strictly tracks what is currently visible on screen
+let currentFilteredData = []; 
+
+// Track index of the row currently being edited (-1 means no row is being edited)
+let editingIndex = -1;
 
 // ------------------------------------------
 // 1. Upload & Parse Excel File
@@ -72,10 +75,7 @@ function uploadExcel() {
                 });
             }
 
-            try {
-                localStorage.setItem("salesData", JSON.stringify(salesData));
-            } catch(e) {}
-
+            saveToStorage();
             filterAll();
 
             const statusEl = document.getElementById("uploadStatus");
@@ -89,6 +89,13 @@ function uploadExcel() {
     };
 
     reader.readAsArrayBuffer(file);
+}
+
+// Helper to save to LocalStorage
+function saveToStorage() {
+    try {
+        localStorage.setItem("salesData", JSON.stringify(salesData));
+    } catch(e) {}
 }
 
 // ------------------------------------------
@@ -105,7 +112,6 @@ function filterAll(e) {
     const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
-    // Store strictly into currentFilteredData
     currentFilteredData = salesData.filter(item => {
         const nameVal = (item.name || "").toLowerCase();
         const emailVal = (item.email || "").toLowerCase();
@@ -122,41 +128,115 @@ function filterAll(e) {
     renderDashboard(currentFilteredData);
 }
 
-// Alias searchData to filterAll to ensure backward compatibility
 function searchData(e) {
     filterAll(e);
 }
 
 // ------------------------------------------
-// 3. Render Table
+// 3. Render Table (With Edit / Save Actions)
 // ------------------------------------------
 function renderTable(data) {
     const tbody = document.getElementById("salesTable");
     if (!tbody) return;
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='10' class='text-center'>No Data Available</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='11' class='text-center'>No Data Available</td></tr>";
         return;
     }
 
     let html = "";
-    data.forEach(r => {
-        html += `
-        <tr>
-            <td>${r.month}</td>
-            <td>${r.projectName}</td>
-            <td>${r.email}</td>
-            <td>${r.name}</td>
-            <td>${r.source}</td>
-            <td>${r.language}</td>
-            <td>${r.rate}</td>
-            <td>${r.hours}</td>
-            <td>${r.amount}</td>
-            <td>${r.projectCode}</td>
-        </tr>`;
+    data.forEach((r, index) => {
+        // Find master array index for this row
+        const masterIndex = salesData.indexOf(r);
+
+        if (editingIndex === masterIndex) {
+            // EDITING ROW VIEW
+            html += `
+            <tr class="table-warning">
+                <td><input type="text" id="edit_month" class="form-control form-control-sm" value="${r.month}"></td>
+                <td><input type="text" id="edit_projectName" class="form-control form-control-sm" value="${r.projectName}"></td>
+                <td><input type="email" id="edit_email" class="form-control form-control-sm" value="${r.email}"></td>
+                <td><input type="text" id="edit_name" class="form-control form-control-sm" value="${r.name}"></td>
+                <td><input type="text" id="edit_source" class="form-control form-control-sm" value="${r.source}"></td>
+                <td><input type="text" id="edit_language" class="form-control form-control-sm" value="${r.language}"></td>
+                <td><input type="number" id="edit_rate" class="form-control form-control-sm" value="${r.rate}" oninput="autoCalcAmount()"></td>
+                <td><input type="number" id="edit_hours" class="form-control form-control-sm" value="${r.hours}" oninput="autoCalcAmount()"></td>
+                <td><input type="number" id="edit_amount" class="form-control form-control-sm" value="${r.amount}" readonly></td>
+                <td><input type="text" id="edit_projectCode" class="form-control form-control-sm" value="${r.projectCode}"></td>
+                <td>
+                    <button class="btn btn-sm btn-success me-1" onclick="saveRow(${masterIndex})">Save</button>
+                    <button class="btn btn-sm btn-secondary" onclick="cancelEdit()">Cancel</button>
+                </td>
+            </tr>`;
+        } else {
+            // NORMAL DISPLAY VIEW
+            html += `
+            <tr>
+                <td>${r.month}</td>
+                <td>${r.projectName}</td>
+                <td>${r.email}</td>
+                <td>${r.name}</td>
+                <td>${r.source}</td>
+                <td>${r.language}</td>
+                <td>${r.rate}</td>
+                <td>${r.hours}</td>
+                <td>${r.amount}</td>
+                <td>${r.projectCode}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editRow(${masterIndex})">Edit</button>
+                </td>
+            </tr>`;
+        }
     });
 
     tbody.innerHTML = html;
+}
+
+// Automatically recalculate Amount = Rate * Hours while typing
+function autoCalcAmount() {
+    const rate = Number(document.getElementById("edit_rate")?.value || 0);
+    const hours = Number(document.getElementById("edit_hours")?.value || 0);
+    const amountEl = document.getElementById("edit_amount");
+    if (amountEl) {
+        amountEl.value = rate * hours;
+    }
+}
+
+// Trigger Edit Mode for a row
+function editRow(masterIndex) {
+    editingIndex = masterIndex;
+    renderTable(currentFilteredData);
+}
+
+// Cancel Editing
+function cancelEdit() {
+    editingIndex = -1;
+    renderTable(currentFilteredData);
+}
+
+// Save Changes to Row
+function saveRow(masterIndex) {
+    if (masterIndex < 0 || masterIndex >= salesData.length) return;
+
+    const rate = Number(document.getElementById("edit_rate").value || 0);
+    const hours = Number(document.getElementById("edit_hours").value || 0);
+
+    salesData[masterIndex] = {
+        month:       document.getElementById("edit_month").value.trim(),
+        projectName: document.getElementById("edit_projectName").value.trim(),
+        email:       document.getElementById("edit_email").value.trim(),
+        name:        document.getElementById("edit_name").value.trim(),
+        source:      document.getElementById("edit_source").value.trim(),
+        language:    document.getElementById("edit_language").value.trim(),
+        rate:        rate,
+        hours:       hours,
+        amount:      rate * hours, // Auto-calculated Amount
+        projectCode: document.getElementById("edit_projectCode").value.trim()
+    };
+
+    saveToStorage();
+    editingIndex = -1;
+    filterAll(); // Refreshes table, exports, and KPI cards
 }
 
 // ------------------------------------------
@@ -181,7 +261,7 @@ function renderDashboard(data) {
 }
 
 // ------------------------------------------
-// 5. Download Excel (.xlsx) — Active for Filtered/Unfiltered
+// 5. Download Excel (.xlsx)
 // ------------------------------------------
 function downloadExcel() {
     const dataToExport = (currentFilteredData && currentFilteredData.length > 0) 
@@ -193,7 +273,6 @@ function downloadExcel() {
         return;
     }
 
-    // Format headers cleanly
     const formattedData = dataToExport.map(r => ({
         "Month": r.month,
         "Project Name": r.projectName,
@@ -207,17 +286,15 @@ function downloadExcel() {
         "Project Code": r.projectCode
     }));
 
-    // Build Excel file
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Records");
 
-    // Download
     XLSX.writeFile(workbook, "SalesData_Export.xlsx");
 }
 
 // ------------------------------------------
-// 6. Download CSV (.csv) — Active for Filtered/Unfiltered
+// 6. Download CSV (.csv)
 // ------------------------------------------
 function downloadCSV() {
     const dataToExport = (currentFilteredData && currentFilteredData.length > 0) 
