@@ -3,349 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sales Analytics Suite</title>
-
+    <title>Sales Management System</title>
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        :root {
-            --bg-main: #f1f5f9;
-            --sidebar-bg: #0f172a;
-            --sidebar-hover: #1e293b;
-            --primary-accent: #2563eb;
-            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            --card-radius: 16px;
-        }
-
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-main);
-            color: #0f172a;
+            background-color: #f8f9fa;
         }
-
-        /* Top Navbar */
-        .navbar-custom {
-            background: rgba(15, 23, 42, 0.98);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Sidebar Navigation */
         .sidebar {
-            min-height: calc(100vh - 60px);
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #1e293b;
+            min-height: 100vh;
+            background-color: #0b3c5d;
+            color: #fff;
         }
-
-        .sidebar .nav-link {
-            color: #94a3b8;
-            font-weight: 600;
-            padding: 12px 18px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .sidebar a {
+            color: #d9e1e8;
             text-decoration: none;
         }
-
-        .sidebar .nav-link:hover {
-            color: #ffffff;
-            background-color: var(--sidebar-hover);
-            transform: translateX(4px);
+        .sidebar a:hover, .sidebar a.active {
+            color: #fff;
+            background-color: #1d2731;
         }
-
-        .sidebar .nav-link.active {
-            color: #ffffff;
-            background: var(--primary-gradient);
-            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
+        .card-kpi {
+            border-left: 4px solid #328cc1;
         }
-
-        /* Original Pastel KPI Cards */
-        .gradient-kpi-card {
-            border-radius: var(--card-radius);
-            padding: 22px 24px;
-            position: relative;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-        }
-
-        .gradient-kpi-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .kpi-blue {
-            background: linear-gradient(135deg, #cbebfb 0%, #e0f2fe 100%);
-            border-left: 6px solid #0284c7;
-        }
-
-        .kpi-green {
-            background: linear-gradient(135deg, #cbf7d5 0%, #dcfce7 100%);
-            border-left: 6px solid #16a34a;
-        }
-
-        .kpi-purple {
-            background: linear-gradient(135deg, #f1ddff 0%, #fae8ff 100%);
-            border-left: 6px solid #9333ea;
-        }
-
-        .kpi-yellow {
-            background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%);
-            border-left: 6px solid #ca8a04;
-        }
-
-        .kpi-icon-wrapper {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-            margin-bottom: 14px;
-        }
-
-        .kpi-title-text {
-            font-size: 0.78rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .kpi-blue .kpi-title-text { color: #0369a1; }
-        .kpi-green .kpi-title-text { color: #15803d; }
-        .kpi-purple .kpi-title-text { color: #7e22ce; }
-        .kpi-yellow .kpi-title-text { color: #a16207; }
-
-        .kpi-value-text {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1;
-            margin-top: 6px;
-        }
-
-        /* Panel Cards with Dark Header */
-        .panel-card {
-            border: 1px solid #cbd5e1;
-            border-radius: var(--card-radius);
-            background: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            overflow: hidden;
-        }
-
-        .panel-header-slate {
-            background-color: #1e293b;
-            color: #ffffff;
-            padding: 16px 22px;
-            font-weight: 700;
-        }
-
-        /* Table Design */
-        .table-custom {
-            margin-bottom: 0;
-            background-color: #ffffff;
-            font-size: 0.85rem;
-        }
-
-        .table-custom thead th {
-            background-color: #1e293b;
-            color: #f8fafc;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 12px 12px;
-            border: none;
-            white-space: nowrap;
-        }
-
-        .table-custom tbody td {
-            padding: 10px 12px;
-            color: #334155;
-            font-weight: 500;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
-        }
-
-        .table-custom tbody tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-
-        .table-custom tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        /* Editable Inputs */
+        /* Style for editable input fields */
         .edit-input {
             width: 100%;
-            padding: 4px 6px;
-            font-size: 0.8rem;
-            border: 1px solid #2563eb;
+            padding: 2px 4px;
+            font-size: 0.85rem;
+            border: 1px solid #0d47a1;
             border-radius: 4px;
-            background-color: #eff6ff;
-            outline: none;
-        }
-
-        .edit-input:focus {
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
-        }
-
-        /* Dropzone Upload Styling */
-        .upload-box {
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            background: #f8fafc;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .upload-box:hover {
-            background: #eff6ff;
-            border-color: #2563eb;
+            background-color: #e8f0fe;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <nav class="navbar navbar-dark navbar-custom px-4 py-3 sticky-top">
-        <div class="container-fluid p-0">
-            <span class="navbar-brand fw-bold fs-5 d-flex align-items-center gap-2">
-                <div class="p-2 bg-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                    <i class="fa-solid fa-chart-line text-white fs-6"></i>
-                </div>
-                Sales Analytics Suite
-            </span>
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-semibold shadow-sm">
-                    <i class="fa-solid fa-circle text-white me-1" style="font-size: 8px;"></i> System Live
-                </span>
-            </div>
-        </div>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-dark bg-primary px-3 shadow-sm" style="background-color: #0d47a1 !important;">
+        <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-chart-line me-2"></i>Sales Management System</span>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-
-            <!-- Sidebar Navigation -->
+            <!-- Sidebar -->
             <div class="col-md-2 sidebar p-3 d-none d-md-block">
-                <div class="text-uppercase small fw-bold mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
-                <ul class="nav flex-column gap-2">
-                    <li class="nav-item">
-                        <a href="index.html" class="nav-link active">
-                            <i class="fa-solid fa-house me-1"></i> Dashboard
-                        </a>
+                <h6 class="text-uppercase text-muted fw-bold mb-3">Menu</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="index.html" class="nav-link active rounded p-2"><i class="fa-solid fa-gauge me-2"></i>Dashboard / Sales</a>
                     </li>
                     <li class="nav-item">
-                        <a href="reports.html" class="nav-link">
-                            <i class="fa-solid fa-chart-pie me-1"></i> Reports
-                        </a>
+                        <a href="reports.html" class="nav-link rounded p-2"><i class="fa-solid fa-file-invoice me-2"></i>Reports</a>
                     </li>
                 </ul>
             </div>
 
             <!-- Main Content Area -->
             <div class="col-md-10 p-4">
-
-                <!-- Gradient Top KPI Cards -->
+                
+                <!-- KPI Dashboard Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
-                        <div class="gradient-kpi-card kpi-blue">
-                            <div class="kpi-icon-wrapper">
-                                <i class="fa-solid fa-dollar-sign text-primary fs-5"></i>
-                            </div>
-                            <div class="kpi-title-text">Total Revenue</div>
-                            <div class="kpi-value-text" id="kpiTotalRevenue">0</div>
+                        <div class="card card-kpi shadow-sm p-3 bg-white rounded">
+                            <div class="text-muted small">Total Amount</div>
+                            <div class="fs-3 fw-bold text-dark" id="totalAmount">0</div>
                         </div>
                     </div>
-
                     <div class="col-md-3">
-                        <div class="gradient-kpi-card kpi-green">
-                            <div class="kpi-icon-wrapper">
-                                <i class="fa-solid fa-cart-shopping text-success fs-5"></i>
-                            </div>
-                            <div class="kpi-title-text">Total Orders</div>
-                            <div class="kpi-value-text" id="kpiTotalOrders">0</div>
+                        <div class="card card-kpi shadow-sm p-3 bg-white rounded">
+                            <div class="text-muted small">Total Records</div>
+                            <div class="fs-3 fw-bold text-dark" id="totalRecords">0</div>
                         </div>
                     </div>
-
                     <div class="col-md-3">
-                        <div class="gradient-kpi-card kpi-purple">
-                            <div class="kpi-icon-wrapper">
-                                <i class="fa-regular fa-clock text-purple fs-5" style="color: #9333ea;"></i>
-                            </div>
-                            <div class="kpi-title-text">Total Hours</div>
-                            <div class="kpi-value-text" id="kpiTotalHours">0</div>
+                        <div class="card card-kpi shadow-sm p-3 bg-white rounded">
+                            <div class="text-muted small">Total Hours</div>
+                            <div class="fs-3 fw-bold text-dark" id="totalHours">0</div>
                         </div>
                     </div>
-
                     <div class="col-md-3">
-                        <div class="gradient-kpi-card kpi-yellow">
-                            <div class="kpi-icon-wrapper">
-                                <i class="fa-solid fa-calculator text-warning fs-5" style="color: #ca8a04;"></i>
-                            </div>
-                            <div class="kpi-title-text">Avg Hourly Rate</div>
-                            <div class="kpi-value-text" id="kpiAvgRate">0</div>
+                        <div class="card card-kpi shadow-sm p-3 bg-white rounded">
+                            <div class="text-muted small">Avg Rate</div>
+                            <div class="fs-3 fw-bold text-dark" id="avgRate">0</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Upload Panel -->
-                <div class="card panel-card mb-4">
-                    <div class="panel-header-slate d-flex justify-content-between align-items-center">
-                        <span><i class="fa-solid fa-cloud-arrow-up text-info me-2"></i> Data Ingestion & Sync</span>
+                <!-- File Upload Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="fa-solid fa-file-excel me-2"></i>Upload Monthly Sales
                     </div>
-                    <div class="card-body p-4">
-                        <div class="upload-box" onclick="document.getElementById('excelFileInput').click()">
-                            <i class="fa-solid fa-file-excel text-primary fs-2 mb-2"></i>
-                            <h6 class="fw-bold mb-1">Click to upload Excel File</h6>
-                            <p class="text-muted small mb-0">Supported formats: .xlsx, .xls, .csv</p>
-                            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileUpload(event)">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-9">
+                                <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls, .csv">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="uploadBtn" class="btn btn-primary w-100" style="background-color: #0d47a1;">Upload Excel</button>
+                            </div>
+                        </div>
+                        <div id="uploadStatus" class="mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Search Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-info text-white fw-bold" style="background-color: #00838f !important;">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>Search Sales
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" id="searchName" class="form-control" placeholder="Name">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" id="searchEmail" class="form-control" placeholder="Email ID">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" id="searchMonth" class="form-control" placeholder="Month">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="searchBtn" class="btn btn-success w-100">Search</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sales Detailed Records Table -->
-                <div class="card panel-card mb-5">
-                    <div class="panel-header-slate d-flex justify-content-between align-items-center">
-                        <span class="fs-6"><i class="fa-solid fa-table me-2 text-info"></i> Sales Detailed Records</span>
-                        <span class="badge bg-primary rounded-pill px-3 py-2" id="recordCountBadge">0 Records</span>
+                <!-- Sales Data Table Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white fw-bold">
+                        <i class="fa-solid fa-table me-2"></i>Sales Records
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-custom align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Month</th>
-                                    <th>Project</th>
-                                    <th>Email ID</th>
-                                    <th>Client Name</th>
-                                    <th>Source</th>
-                                    <th>Language</th>
-                                    <th>Rate</th>
-                                    <th>Hours</th>
-                                    <th>Amount</th>
-                                    <th>Code</th>
-                                    <th class="text-center" style="width: 120px;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="salesTableBody">
-                                <tr>
-                                    <td colspan="11" class="text-center py-5 text-muted">
-                                        <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
-                                        No sales records available. Please upload an Excel sheet.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0 align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Project Name</th>
+                                        <th>Email ID</th>
+                                        <th>Name</th>
+                                        <th>Source</th>
+                                        <th>Language</th>
+                                        <th>Rate</th>
+                                        <th>Hours</th>
+                                        <th>Amount</th>
+                                        <th>Project Code</th>
+                                        <th class="text-center" style="width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salesTableBody">
+                                    <tr>
+                                        <td colspan="11" class="text-center py-4 text-muted">No Data Available</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -353,231 +170,9 @@
         </div>
     </div>
 
-    <!-- External SheetJS Script -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-    <script>
-    let globalSalesData = [];
-
-    document.addEventListener("DOMContentLoaded", () => {
-        loadDataFromStorage();
-    });
-
-    // Flexible property lookup ignoring spaces, underscores, and case
-    function getProp(obj, propName) {
-        if (!obj) return "";
-        const normalize = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
-        const normalizedProp = normalize(propName);
-        
-        const key = Object.keys(obj).find(k => normalize(k) === normalizedProp);
-        return key ? obj[key] : "";
-    }
-
-    function setProp(obj, propName, newValue) {
-        if (!obj) return;
-        const normalize = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
-        const normalizedProp = normalize(propName);
-        
-        const key = Object.keys(obj).find(k => normalize(k) === normalizedProp);
-        if (key) {
-            obj[key] = newValue;
-        } else {
-            obj[propName] = newValue;
-        }
-    }
-
-    function loadDataFromStorage() {
-        try {
-            const raw = localStorage.getItem("salesData");
-            if (raw) {
-                globalSalesData = JSON.parse(raw);
-                renderDashboard();
-            }
-        } catch(e) {
-            console.error("Error loading localStorage data:", e);
-        }
-    }
-
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            
-            globalSalesData = XLSX.utils.sheet_to_json(worksheet);
-            localStorage.setItem("salesData", JSON.stringify(globalSalesData));
-            renderDashboard();
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function renderDashboard() {
-        renderKPIs();
-        renderTable();
-    }
-
-    function renderKPIs() {
-        if (!globalSalesData || globalSalesData.length === 0) {
-            document.getElementById("kpiTotalRevenue").innerText = "0";
-            document.getElementById("kpiTotalOrders").innerText = "0";
-            document.getElementById("kpiTotalHours").innerText = "0";
-            document.getElementById("kpiAvgRate").innerText = "0";
-            return;
-        }
-
-        let totalRevenue = 0;
-        let totalHours = 0;
-        let totalRateSum = 0;
-
-        globalSalesData.forEach(item => {
-            const h = Number(getProp(item, "hours")) || 0;
-            const r = Number(getProp(item, "rate")) || 0;
-            const amt = Number(getProp(item, "amount")) || (h * r) || 0;
-
-            totalRevenue += amt;
-            totalHours += h;
-            totalRateSum += r;
-        });
-
-        const totalOrders = globalSalesData.length;
-        const avgRate = totalOrders > 0 ? Math.round(totalRateSum / totalOrders) : 0;
-
-        document.getElementById("kpiTotalRevenue").innerText = totalRevenue.toLocaleString();
-        document.getElementById("kpiTotalOrders").innerText = totalOrders.toLocaleString();
-        document.getElementById("kpiTotalHours").innerText = totalHours.toLocaleString();
-        document.getElementById("kpiAvgRate").innerText = avgRate.toLocaleString();
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById("salesTableBody");
-        const badge = document.getElementById("recordCountBadge");
-
-        if (!globalSalesData || globalSalesData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-5 text-muted"><i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>No sales records available. Upload an Excel sheet above.</td></tr>`;
-            badge.innerText = "0 Records";
-            return;
-        }
-
-        badge.innerText = `${globalSalesData.length} Records`;
-
-        let html = "";
-        globalSalesData.forEach((item, index) => {
-            const month = getProp(item, "month") || "-";
-            const project = getProp(item, "project name") || getProp(item, "project") || "-";
-            const email = getProp(item, "email id") || getProp(item, "email") || "-";
-            const name = getProp(item, "name") || getProp(item, "client name") || "-";
-            const source = getProp(item, "source") || "-";
-            const language = getProp(item, "language") || "-";
-            const rate = Number(getProp(item, "rate")) || 0;
-            const hours = Number(getProp(item, "hours")) || 0;
-            const amount = Number(getProp(item, "amount")) || (rate * hours);
-            const code = getProp(item, "project code") || getProp(item, "code") || "-";
-
-            html += `
-            <tr id="row-${index}">
-                <td class="fw-bold">${month}</td>
-                <td>${project}</td>
-                <td>${email}</td>
-                <td>${name}</td>
-                <td>${source}</td>
-                <td>${language}</td>
-                <td>$${rate}</td>
-                <td>${hours}</td>
-                <td class="text-success fw-bold">$${amount.toLocaleString()}</td>
-                <td><span class="badge bg-light text-dark border">${code}</span></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary py-0 px-2 fs-7" onclick="enableEdit(${index})">
-                        <i class="fa-solid fa-pen-to-square me-1"></i>Edit
-                    </button>
-                </td>
-            </tr>`;
-        });
-
-        tbody.innerHTML = html;
-    }
-
-    function enableEdit(index) {
-        const item = globalSalesData[index];
-        const tr = document.getElementById(`row-${index}`);
-
-        const month = getProp(item, "month");
-        const project = getProp(item, "project name") || getProp(item, "project");
-        const email = getProp(item, "email id") || getProp(item, "email");
-        const name = getProp(item, "name") || getProp(item, "client name");
-        const source = getProp(item, "source");
-        const language = getProp(item, "language");
-        const rate = Number(getProp(item, "rate")) || 0;
-        const hours = Number(getProp(item, "hours")) || 0;
-        const amount = Number(getProp(item, "amount")) || (rate * hours);
-        const code = getProp(item, "project code") || getProp(item, "code");
-
-        tr.innerHTML = `
-            <td><input type="text" class="edit-input" id="edit-month-${index}" value="${month}"></td>
-            <td><input type="text" class="edit-input" id="edit-project-${index}" value="${project}"></td>
-            <td><input type="text" class="edit-input" id="edit-email-${index}" value="${email}"></td>
-            <td><input type="text" class="edit-input" id="edit-name-${index}" value="${name}"></td>
-            <td><input type="text" class="edit-input" id="edit-source-${index}" value="${source}"></td>
-            <td><input type="text" class="edit-input" id="edit-language-${index}" value="${language}"></td>
-            <td><input type="number" class="edit-input" id="edit-rate-${index}" value="${rate}" oninput="calcEditAmount(${index})"></td>
-            <td><input type="number" class="edit-input" id="edit-hours-${index}" value="${hours}" oninput="calcEditAmount(${index})"></td>
-            <td><input type="number" class="edit-input fw-bold" id="edit-amount-${index}" value="${amount}" readonly></td>
-            <td><input type="text" class="edit-input" id="edit-code-${index}" value="${code}"></td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-success py-0 px-2 mb-1" onclick="saveEdit(${index})">
-                    <i class="fa-solid fa-check me-1"></i>Save
-                </button>
-                <button class="btn btn-sm btn-secondary py-0 px-2" onclick="renderDashboard()">
-                    <i class="fa-solid fa-xmark me-1"></i>Cancel
-                </button>
-            </td>
-        `;
-    }
-
-    function calcEditAmount(index) {
-        const rate = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
-        const hours = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
-        document.getElementById(`edit-amount-${index}`).value = rate * hours;
-    }
-
-    function saveEdit(index) {
-        const item = globalSalesData[index];
-
-        const newMonth = document.getElementById(`edit-month-${index}`).value;
-        const newProject = document.getElementById(`edit-project-${index}`).value;
-        const newEmail = document.getElementById(`edit-email-${index}`).value;
-        const newName = document.getElementById(`edit-name-${index}`).value;
-        const newSource = document.getElementById(`edit-source-${index}`).value;
-        const newLanguage = document.getElementById(`edit-language-${index}`).value;
-        const newRate = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
-        const newHours = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
-        const newAmount = Number(document.getElementById(`edit-amount-${index}`).value) || (newRate * newHours);
-        const newCode = document.getElementById(`edit-code-${index}`).value;
-
-        // Apply updated properties
-        setProp(item, "month", newMonth);
-        setProp(item, "project name", newProject);
-        setProp(item, "email id", newEmail);
-        setProp(item, "name", newName);
-        setProp(item, "source", newSource);
-        setProp(item, "language", newLanguage);
-        setProp(item, "rate", newRate);
-        setProp(item, "hours", newHours);
-        setProp(item, "amount", newAmount);
-        setProp(item, "project code", newCode);
-
-        // Save into local storage
-        globalSalesData[index] = item;
-        localStorage.setItem("salesData", JSON.stringify(globalSalesData));
-
-        // Re-render dashboard totals and table
-        renderDashboard();
-    }
-    </script>
-
+    <!-- SheetJS (XLSX) Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Custom Script -->
+    <script src="script.js"></script>
 </body>
 </html>
