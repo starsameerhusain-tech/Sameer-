@@ -1,6 +1,6 @@
 // ==========================================
 // Sales Management System - Position-Based Fix
-// With Automatic Data Persistence (localStorage)
+// With Automatic Data Persistence & Dynamic Search Dashboard
 // ==========================================
 
 let salesData = [];
@@ -88,7 +88,7 @@ function uploadExcel() {
             localStorage.setItem("savedSalesData", JSON.stringify(salesData));
 
             loadTable(salesData);
-            updateDashboard();
+            updateDashboard(salesData); // Updates dashboard with full dataset initially
 
             const statusEl = document.getElementById("uploadStatus");
             if (statusEl) {
@@ -136,22 +136,25 @@ function loadTable(data) {
 }
 
 // ------------------------------------------
-// 3. Update Dashboard Cards
+// 3. Update Dashboard Cards (Now accepts data dynamic parameters)
 // ------------------------------------------
-function updateDashboard() {
+function updateDashboard(dataToCalculate) {
+    // If no data array is specifically given, fallback safely to the full salesData array
+    const currentData = dataToCalculate || salesData;
+
     const setSafeText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = text;
     };
 
-    const totalSales = salesData.reduce((a, b) => a + (b.amount || 0), 0);
-    const totalHours = salesData.reduce((a, b) => a + (b.hours || 0), 0);
-    const avgRate = salesData.length > 0 
-        ? Math.round(salesData.reduce((a, b) => a + (b.rate || 0), 0) / salesData.length) 
+    const totalSales = currentData.reduce((a, b) => a + (b.amount || 0), 0);
+    const totalHours = currentData.reduce((a, b) => a + (b.hours || 0), 0);
+    const avgRate = currentData.length > 0 
+        ? Math.round(currentData.reduce((a, b) => a + (b.rate || 0), 0) / currentData.length) 
         : 0;
 
     setSafeText("totalSales", totalSales.toLocaleString());
-    setSafeText("totalCustomers", salesData.length); // Total Records
+    setSafeText("totalCustomers", currentData.length); // Total Records
     setSafeText("totalProducts", totalHours.toLocaleString()); // Total Hours
     setSafeText("totalQty", avgRate); // Avg Rate
 }
@@ -185,6 +188,7 @@ function searchData(e) {
     });
 
     loadTable(filtered);
+    updateDashboard(filtered); // <-- Dynamic Update: Calculate numbers only for matched records!
 }
 
 // ------------------------------------------
@@ -246,5 +250,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (monthInput) monthInput.addEventListener("input", searchData);
 
     // Refresh the top dashboard numbers card layout
-    updateDashboard();
+    updateDashboard(salesData);
 });
