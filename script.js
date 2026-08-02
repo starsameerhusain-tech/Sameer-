@@ -1,5 +1,6 @@
-// Global dataset store
+// Global dataset stores
 let salesData = [];
+let currentFilteredData = []; // Keeps track of currently visible/filtered rows
 
 // 1. Upload & Parse Excel File
 function uploadExcel() {
@@ -88,7 +89,7 @@ function uploadExcel() {
     reader.readAsArrayBuffer(file);
 }
 
-// 2. Combined Filter Engine: Updates Table AND Cards simultaneously
+// 2. Combined Filter Engine: Updates Table, Cards & Active Export Data
 function filterAll() {
     const nameInput = document.getElementById("customerSearch");
     const emailInput = document.getElementById("emailSearch");
@@ -99,7 +100,7 @@ function filterAll() {
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
     // Filter master array
-    const filtered = salesData.filter(item => {
+    currentFilteredData = salesData.filter(item => {
         const nameVal = (item.name || "").toLowerCase();
         const emailVal = (item.email || "").toLowerCase();
         const monthVal = (item.month || "").toLowerCase();
@@ -112,10 +113,10 @@ function filterAll() {
     });
 
     // Update Table
-    renderTable(filtered);
+    renderTable(currentFilteredData);
 
     // Update Dashboard Cards
-    renderDashboard(filtered);
+    renderDashboard(currentFilteredData);
 }
 
 // 3. Render Table Function
@@ -162,32 +163,58 @@ function renderDashboard(data) {
     document.getElementById("totalQty").innerText = avgRate.toLocaleString();
 }
 
-// 5. CSV Export
+// 5. Download Excel (.xlsx) - Active for Filtered and Unfiltered Data
+function downloadExcel() {
+    if (!currentFilteredData || currentFilteredData.length === 0) {
+        alert("No data available to download.");
+        return;
+    }
+
+    // Format data with exact header labels for clean Excel output
+    const formattedData = currentFilteredData.map(r => ({
+        "Month": r.month,
+        "Project Name": r.projectName,
+        "Email ID": r.email,
+        "Name": r.name,
+        "Source": r.source,
+        "Language": r.language,
+        "Rate": r.rate,
+        "Hours": r.hours,
+        "Amount": r.amount,
+        "Project Code": r.projectCode
+    }));
+
+    // Create Worksheet & Workbook using xlsx.full.min.js
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Records");
+
+    // Download file
+    XLSX.writeFile(workbook, "SalesData_Export.xlsx");
+}
+
+// 6. Download CSV (.csv) - Active for Filtered and Unfiltered Data
 function downloadCSV() {
-    if (salesData.length === 0) {
+    if (!currentFilteredData || currentFilteredData.length === 0) {
         alert("No data available to download.");
         return;
     }
 
     let csv = "Month,Project Name,Email ID,Name,Source,Language,Rate,Hours,Amount,Project Code\n";
-    salesData.forEach(r => {
+    currentFilteredData.forEach(r => {
         csv += `"${r.month}","${r.projectName}","${r.email}","${r.name}","${r.source}","${r.language}",${r.rate},${r.hours},${r.amount},"${r.projectCode}"\n`;
     });
 
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "SalesData.csv";
+    a.download = "SalesData_Export.csv";
     a.click();
     URL.revokeObjectURL(url);
 }
 
-function downloadExcel() {
-    alert("Excel download coming soon!");
-}
-
-// 6. Page Initialization
+// 7. Page Initialization
 document.addEventListener("DOMContentLoaded", () => {
     try {
         const saved = localStorage.getItem("salesData");
