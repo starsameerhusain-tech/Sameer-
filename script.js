@@ -1,5 +1,5 @@
 // ==========================================
-// Sales Management System - Dynamic Metrics Fix
+// Sales Management System - Guaranteed Dynamic Dashboard Fix
 // ==========================================
 
 let salesData = [];
@@ -24,7 +24,6 @@ function uploadExcel() {
             const workbook = XLSX.read(data, { type: "array" });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-            // Read sheet strictly as 2D array matrix [[row1], [row2], ...]
             const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
             if (!rawRows || rawRows.length === 0) {
@@ -32,14 +31,12 @@ function uploadExcel() {
                 return;
             }
 
-            // Number parser helper
             const parseNum = (val) => {
                 if (typeof val === "number") return val;
                 if (!val) return 0;
                 return Number(String(val).replace(/[^0-9.-]+/g, "")) || 0;
             };
 
-            // Find the exact row index where data starts
             let startRowIndex = -1;
             for (let i = 0; i < rawRows.length; i++) {
                 const firstColValue = String(rawRows[i][0] || "").trim().toLowerCase();
@@ -55,7 +52,6 @@ function uploadExcel() {
 
             salesData = [];
 
-            // Extract strictly by position (Column A = 0, B = 1, C = 2, etc.)
             for (let i = startRowIndex; i < rawRows.length; i++) {
                 const row = rawRows[i];
                 if (!row || row.length === 0) continue;
@@ -80,8 +76,13 @@ function uploadExcel() {
                 });
             }
 
-            loadTable(salesData);
-            updateDashboard(salesData); // Update metrics with full dataset
+            // Save to localStorage if your app uses it
+            try {
+                localStorage.setItem("salesData", JSON.stringify(salesData));
+            } catch(e) {}
+
+            // Trigger search to render table and dashboard with current filters (or full if no filter)
+            searchData();
 
             const statusEl = document.getElementById("uploadStatus");
             if (statusEl) {
@@ -129,28 +130,31 @@ function loadTable(data) {
 }
 
 // ------------------------------------------
-// 3. Dynamic Dashboard Cards (Accepts Dataset)
+// 3. Dynamic Dashboard Cards (Forces Recalculation)
 // ------------------------------------------
-function updateDashboard(currentData = salesData) {
+function updateDashboard(dataset) {
+    // Default to salesData if dataset is not passed
+    const currentData = dataset || salesData;
+
     const setSafeText = (id, text) => {
         const el = document.getElementById(id);
-        if (el) el.innerHTML = text;
+        if (el) el.innerText = text;
     };
 
-    const totalSales = currentData.reduce((a, b) => a + (b.amount || 0), 0);
-    const totalHours = currentData.reduce((a, b) => a + (b.hours || 0), 0);
+    const totalSales = currentData.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+    const totalHours = currentData.reduce((a, b) => a + (Number(b.hours) || 0), 0);
     const avgRate = currentData.length > 0 
-        ? Math.round(currentData.reduce((a, b) => a + (b.rate || 0), 0) / currentData.length) 
+        ? Math.round(currentData.reduce((a, b) => a + (Number(b.rate) || 0), 0) / currentData.length) 
         : 0;
 
     setSafeText("totalSales", totalSales.toLocaleString());
-    setSafeText("totalCustomers", currentData.length); // Total Records
+    setSafeText("totalCustomers", currentData.length.toLocaleString()); // Total Records
     setSafeText("totalProducts", totalHours.toLocaleString()); // Total Hours
-    setSafeText("totalQty", avgRate); // Avg Rate
+    setSafeText("totalQty", avgRate.toLocaleString()); // Avg Rate
 }
 
 // ------------------------------------------
-// 4. Live Search (Updates Table & Dashboard)
+// 4. Live Search (Filters Table AND Updates Dashboard)
 // ------------------------------------------
 function searchData(e) {
     if (e && e.preventDefault) {
@@ -165,10 +169,11 @@ function searchData(e) {
     const emailQuery = emailInput ? emailInput.value.trim().toLowerCase() : "";
     const monthQuery = monthInput ? monthInput.value.trim().toLowerCase() : "";
 
+    // Filter from master salesData array
     const filtered = salesData.filter(item => {
-        const nameVal = item.name.toLowerCase();
-        const emailVal = item.email.toLowerCase();
-        const monthVal = item.month.toLowerCase();
+        const nameVal = (item.name || "").toLowerCase();
+        const emailVal = (item.email || "").toLowerCase();
+        const monthVal = (item.month || "").toLowerCase();
 
         const matchesName = !nameQuery || nameVal.includes(nameQuery);
         const matchesEmail = !emailQuery || emailVal.includes(emailQuery);
@@ -177,8 +182,10 @@ function searchData(e) {
         return matchesName && matchesEmail && matchesMonth;
     });
 
-    // Update both table and dashboard cards with the filtered data
+    // 1. Update Table with filtered records
     loadTable(filtered);
+
+    // 2. FORCE Dashboard to calculate ONLY filtered records
     updateDashboard(filtered);
 }
 
@@ -210,16 +217,29 @@ function downloadExcel() {
 }
 
 // ------------------------------------------
-// 6. Automatic Initialization & Key Listeners
+// 6. Automatic Initialization
 // ------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+    // Check if data exists in localStorage
+    try {
+        const saved = localStorage.getItem("salesData");
+        if (saved) {
+            salesData = JSON.parse(saved);
+            const statusEl = document.getElementById("uploadStatus");
+            if (statusEl) {
+                statusEl.innerHTML = "🔄 Loaded " + salesData.length + " records from browser memory.";
+            }
+        }
+    } catch(e) {}
+
     const nameInput = document.getElementById("customerSearch");
     const emailInput = document.getElementById("emailSearch");
     const monthInput = document.getElementById("monthSearch");
 
-    if (nameInput) nameInput.addEventListener("input", searchData);
-    if (emailInput) emailInput.addEventListener("input", searchData);
-    if (monthInput) monthInput.addEventListener("input", searchData);
+    if (nameInput) nameInput.addEventListener("keyup", searchData);
+    if (emailInput) emailInput.addEventListener("keyup", searchData);
+    if (monthInput) monthInput.addEventListener("keyup", searchData);
 
-    updateDashboard();
+    // Initial render
+    searchData();
 });
