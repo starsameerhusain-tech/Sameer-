@@ -40,6 +40,42 @@
         <!-- Main Content Area -->
         <div class="col-md-9">
 
+            <!-- KPI Overview Row -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm border-0 bg-primary text-white">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Revenue</h6>
+                            <h3 id="kpiRevenue" class="fw-bold mb-0">$0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm border-0 bg-success text-white">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Records</h6>
+                            <h3 id="kpiRecords" class="fw-bold mb-0">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm border-0 bg-info text-white">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-1 text-white-50">Total Hours</h6>
+                            <h3 id="kpiHours" class="fw-bold mb-0">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center shadow-sm border-0 bg-secondary text-white">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-1 text-white-50">Avg Rate / Hr</h6>
+                            <h3 id="kpiAvgRate" class="fw-bold mb-0">$0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chart Visualizations Row -->
             <div class="row mb-4">
                 <div class="col-md-6">
@@ -194,8 +230,14 @@ function generateMonthReport() {
 
     tbody.innerHTML = html;
 
-    // Render Footer Totals
+    // Render Footer Totals & KPI Cards
     const grandAvgRate = grandRecords > 0 ? Math.round(totalRateSum / grandRecords) : 0;
+    
+    document.getElementById("kpiRevenue").innerText = `$${grandAmount.toLocaleString()}`;
+    document.getElementById("kpiRecords").innerText = grandRecords.toLocaleString();
+    document.getElementById("kpiHours").innerText = `${grandHours.toLocaleString()} hrs`;
+    document.getElementById("kpiAvgRate").innerText = `$${grandAvgRate.toLocaleString()}`;
+
     tfoot.innerHTML = `
     <tr>
         <td>Grand Total</td>
@@ -214,7 +256,6 @@ function renderCharts(data) {
     const amounts = data.map(d => d.amount);
     const hours = data.map(d => d.hours);
 
-    // Destroy existing instances if refreshing
     if (revenueChartInstance) revenueChartInstance.destroy();
     if (hoursChartInstance) hoursChartInstance.destroy();
 
