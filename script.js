@@ -1,6 +1,5 @@
 // Global Configuration
-// Paste your Web App URL here (Must end in /exec)
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvMtq1wd_xOeAyeyNo3DYnGcxlENSgrUEfB8xkuzunz7QBqBVyhKXHRT3LuLBb6jNQTw/exec"; 
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvMtq1wd_xOeAyeyNo3DYnGcxlENSgrUEfB8xkuzunz7QBqBVyhKXHRT3LuLBb6jNQTw/exec";
 
 // State Management
 let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
@@ -36,7 +35,7 @@ function handleFileUpload() {
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
+
             // Convert to JSON
             const rawJson = XLSX.utils.sheet_to_json(worksheet);
 
@@ -62,7 +61,7 @@ function handleFileUpload() {
             // 1. Update Local UI Data
             salesData = formattedData;
             localStorage.setItem('salesData', JSON.stringify(salesData));
-            
+
             // 2. Refresh UI
             updateDashboardUI();
             renderTable(salesData);
