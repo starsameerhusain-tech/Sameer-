@@ -1,4 +1,5 @@
 let salesData = [];
+let currentFilteredData = []; // Tracks currently displayed/filtered records for download
 
 document.addEventListener("DOMContentLoaded", () => {
     loadSavedData();
@@ -70,6 +71,7 @@ function setProp(obj, keyName, val) {
 
 // Render Data Table
 function renderData(data) {
+    currentFilteredData = data; // Keep track of current view for export
     const tbody = document.getElementById("salesTableBody");
     tbody.innerHTML = "";
 
@@ -226,4 +228,24 @@ function resetFilters() {
     document.getElementById("searchEmail").value = "";
     document.getElementById("searchMonth").value = "";
     renderData(salesData);
+}
+
+// Function to handle downloading current or filtered table records
+function downloadFile(type) {
+    const dataToExport = currentFilteredData.length > 0 ? currentFilteredData : salesData;
+    
+    if (!dataToExport || dataToExport.length === 0) {
+        alert("No data available to download!");
+        return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Records");
+
+    if (type === 'excel') {
+        XLSX.writeFile(workbook, "Sales_Records.xlsx");
+    } else if (type === 'csv') {
+        XLSX.writeFile(workbook, "Sales_Records.csv");
+    }
 }
