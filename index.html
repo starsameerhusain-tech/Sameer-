@@ -110,7 +110,7 @@
                                 id="customerSearch" 
                                 class="form-control" 
                                 placeholder="Name" 
-                                oninput="searchData()"
+                                oninput="filterAll()"
                             >
                         </div>
                         <div class="col-md-3">
@@ -119,7 +119,7 @@
                                 id="emailSearch" 
                                 class="form-control" 
                                 placeholder="Email ID" 
-                                oninput="searchData()"
+                                oninput="filterAll()"
                             >
                         </div>
                         <div class="col-md-3">
@@ -128,14 +128,14 @@
                                 id="monthSearch" 
                                 class="form-control" 
                                 placeholder="Month" 
-                                oninput="searchData()"
+                                oninput="filterAll()"
                             >
                         </div>
                         <div class="col-md-3">
                             <button 
                                 type="button" 
                                 class="btn btn-success w-100" 
-                                onclick="searchData(event)"
+                                onclick="filterAll()"
                             >
                                 Search
                             </button>
