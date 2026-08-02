@@ -36,6 +36,9 @@
         <!-- Main Content Area -->
         <div class="col-md-9">
 
+            <!-- Debugging Info Alert -->
+            <div id="debugAlert" class="alert alert-info py-2 small" style="display:none;"></div>
+
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">📅 Month-Wise Sales Report</h5>
@@ -82,27 +85,67 @@ document.addEventListener("DOMContentLoaded", () => {
     generateMonthReport();
 });
 
+// Helper function to find property regardless of key casing
+function getProp(obj, propName) {
+    if (!obj) return "";
+    const key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
+    return key ? obj[key] : "";
+}
+
 function generateMonthReport() {
     let salesData = [];
+    let storageKey = "salesData";
+
+    // Debugging alert setup
+    const debugBox = document.getElementById("debugAlert");
+
     try {
-        const saved = localStorage.getItem("salesData");
-        if (saved) salesData = JSON.parse(saved);
-    } catch(e) {}
+        let raw = localStorage.getItem("salesData");
+        
+        // Fallback check if saved under a different key
+        if (!raw) {
+            const possibleKeys = Object.keys(localStorage);
+            if (possibleKeys.length > 0) {
+                storageKey = possibleKeys.find(k => k.toLowerCase().includes("sales")) || possibleKeys[0];
+                raw = localStorage.getItem(storageKey);
+            }
+        }
+
+        if (raw) {
+            salesData = JSON.parse(raw);
+        }
+    } catch(e) {
+        console.error("Error loading localStorage data:", e);
+    }
 
     const tbody = document.getElementById("reportsTable");
     const tfoot = document.getElementById("reportsFooter");
 
-    if (!salesData || salesData.length === 0) {
+    if (!salesData || !Array.isArray(salesData) || salesData.length === 0) {
+        debugBox.style.display = "block";
+        debugBox.className = "alert alert-warning py-2 small";
+        debugBox.innerHTML = `⚠️ <strong>No sales data found in localStorage.</strong> Please go to <a href="index.html" class="alert-link">Dashboard</a> and upload your Excel file first.`;
+        
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No sales data available. Upload data from the Dashboard first.</td></tr>`;
         tfoot.innerHTML = "";
         return;
     }
 
-    // Group data by Month
+    debugBox.style.display = "block";
+    debugBox.className = "alert alert-success py-2 small";
+    debugBox.innerHTML = `✅ Successfully loaded <strong>${salesData.length} records</strong> from LocalStorage.`;
+
+    // Group data by Month (handling casing)
     const monthGroup = {};
 
     salesData.forEach(item => {
-        const month = item.month ? item.month.trim() : "Unknown";
+        let rawMonth = getProp(item, "month");
+        const month = rawMonth ? String(rawMonth).trim() : "Unknown";
+        
+        const hours = Number(getProp(item, "hours")) || 0;
+        const rate = Number(getProp(item, "rate")) || 0;
+        const amount = Number(getProp(item, "amount")) || (hours * rate) || 0;
+
         if (!monthGroup[month]) {
             monthGroup[month] = {
                 month: month,
@@ -114,9 +157,9 @@ function generateMonthReport() {
         }
 
         monthGroup[month].records += 1;
-        monthGroup[month].hours += Number(item.hours) || 0;
-        monthGroup[month].totalRate += Number(item.rate) || 0;
-        monthGroup[month].amount += Number(item.amount) || 0;
+        monthGroup[month].hours += hours;
+        monthGroup[month].totalRate += rate;
+        monthGroup[month].amount += amount;
     });
 
     reportData = Object.values(monthGroup);
