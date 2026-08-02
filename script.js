@@ -1,5 +1,5 @@
 // Global Configuration
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvMtq1wd_xOeAyeyNo3DYnGcxlENSgrUEfB8xkuzunz7QBqBVyhKXHRT3LuLBb6jNQTw/exec";
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxEQa-XsAHki85KFh8VbJ9y9MKaFZL6BQBuarbKLPt3d69yg-ltBXHj0RT_5QJl0vRIvQ/exec";
 
 // State Management
 let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
