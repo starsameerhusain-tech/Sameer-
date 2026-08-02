@@ -44,10 +44,10 @@
                 <h6 class="text-uppercase text-muted fw-bold mb-3">Menu</h6>
                 <ul class="nav flex-column">
                     <li class="nav-item mb-2">
-                        <a href="#" class="nav-link active rounded p-2"><i class="fa-solid fa-gauge me-2"></i>Dashboard / Sales</a>
+                        <a href="index.html" class="nav-link active rounded p-2"><i class="fa-solid fa-gauge me-2"></i>Dashboard / Sales</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link rounded p-2"><i class="fa-solid fa-file-invoice me-2"></i>Reports</a>
+                        <a href="reports.html" class="nav-link rounded p-2"><i class="fa-solid fa-file-invoice me-2"></i>Reports</a>
                     </li>
                 </ul>
             </div>
@@ -98,6 +98,29 @@
                             </div>
                         </div>
                         <div id="uploadStatus" class="mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Search Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-info text-white fw-bold" style="background-color: #00838f !important;">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>Search Sales
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" id="searchName" class="form-control" placeholder="Name">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" id="searchEmail" class="form-control" placeholder="Email ID">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" id="searchMonth" class="form-control" placeholder="Month">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="searchBtn" class="btn btn-success w-100">Search</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
