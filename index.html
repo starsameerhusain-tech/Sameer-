@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Analytics Suite</title>
+    <title>Dashboard - Sales Analytics Suite</title>
+
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root {
-            --bg-main: #edf2f7;
+            --bg-main: #f1f5f9;
             --sidebar-bg: #0f172a;
             --sidebar-hover: #1e293b;
             --primary-accent: #2563eb;
             --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            --card-radius: 16px;
+            --card-radius: 12px;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-main);
-            color: #1e293b;
+            color: #0f172a;
         }
 
         /* Top Navbar */
@@ -33,7 +37,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Sidebar */
+        /* Sidebar Navigation */
         .sidebar {
             min-height: calc(100vh - 60px);
             background-color: var(--sidebar-bg);
@@ -44,11 +48,12 @@
             color: #94a3b8;
             font-weight: 600;
             padding: 12px 18px;
-            border-radius: 12px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 12px;
+            text-decoration: none;
         }
 
         .sidebar .nav-link:hover {
@@ -60,158 +65,90 @@
         .sidebar .nav-link.active {
             color: #ffffff;
             background: var(--primary-gradient);
-            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
         }
 
-        /* Vibrant Accent Metric Cards */
-        .kpi-card {
-            border: none;
-            border-radius: var(--card-radius);
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Custom Soft Color Fills for KPI Cards */
-        .kpi-card-blue {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            border-left: 5px solid #0284c7;
-        }
-        .kpi-card-green {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            border-left: 5px solid #16a34a;
-        }
-        .kpi-card-purple {
-            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-            border-left: 5px solid #9333ea;
-        }
-        .kpi-card-amber {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 5px solid #d97706;
-        }
-
-        .kpi-icon-wrapper {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        /* Panels with Subtle Slate Background */
+        /* Panel Design */
         .panel-card {
             border: 1px solid #cbd5e1;
             border-radius: var(--card-radius);
-            background: #f8fafc;
+            background: #ffffff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        .panel-header-blue {
+        .panel-header-slate {
             background-color: #1e293b;
             color: #ffffff;
-            padding: 16px 24px;
+            padding: 14px 20px;
             border-top-left-radius: calc(var(--card-radius) - 1px);
             border-top-right-radius: calc(var(--card-radius) - 1px);
             font-weight: 700;
         }
 
-        .panel-header-teal {
-            background-color: #0f172a;
-            color: #ffffff;
-            padding: 16px 24px;
-            border-top-left-radius: calc(var(--card-radius) - 1px);
-            border-top-right-radius: calc(var(--card-radius) - 1px);
-            font-weight: 700;
-        }
-
-        /* Input Controls */
-        .form-control {
-            border-radius: 10px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            padding: 10px 16px;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-        }
-
-        /* Upload Area */
-        .file-upload-wrapper {
-            border: 2px dashed #94a3b8;
-            border-radius: 12px;
-            padding: 16px;
-            background-color: #ffffff;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .file-upload-wrapper:hover {
-            border-color: #2563eb;
-            background-color: #eff6ff;
-        }
-
-        /* Table Design */
+        /* Table Styling */
         .table-custom {
             margin-bottom: 0;
             background-color: #ffffff;
+            font-size: 0.82rem;
         }
 
         .table-custom thead th {
-            background-color: #334155;
+            background-color: #1e293b;
             color: #f8fafc;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 14px 20px;
+            letter-spacing: 0.05em;
+            padding: 12px 10px;
             border: none;
+            white-space: nowrap;
         }
 
         .table-custom tbody td {
-            padding: 14px 20px;
+            padding: 8px 10px;
             color: #334155;
-            font-size: 0.9rem;
             font-weight: 500;
             border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
         }
 
         .table-custom tbody tr:nth-child(even) {
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
 
         .table-custom tbody tr:hover {
-            background-color: #e2e8f0;
+            background-color: #f1f5f9;
         }
 
-        .btn-gradient-primary {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 24px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        /* Editable Inputs styling */
+        .edit-input {
+            width: 100%;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border: 1px solid #3b82f6;
+            border-radius: 4px;
+            background-color: #eff6ff;
+            outline: none;
+        }
+
+        .edit-input:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Dropzone Upload Styling */
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .btn-gradient-primary:hover {
-            opacity: 0.95;
-            color: white;
+        .upload-box:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
         }
     </style>
 </head>
@@ -236,9 +173,10 @@
 
     <div class="container-fluid">
         <div class="row">
+
             <!-- Sidebar Navigation -->
             <div class="col-md-2 sidebar p-3 d-none d-md-block">
-                <div class="text-uppercase small fw-bold text-slate-400 mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
+                <div class="text-uppercase small fw-bold mb-3 px-2" style="letter-spacing: 0.05em; font-size: 0.7rem; color: #94a3b8;">Navigation</div>
                 <ul class="nav flex-column gap-2">
                     <li class="nav-item">
                         <a href="index.html" class="nav-link active">
@@ -255,104 +193,30 @@
 
             <!-- Main Content Area -->
             <div class="col-md-10 p-4">
-                
-                <!-- KPI Dashboard Cards with Soft Color Fills -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-3">
-                        <div class="kpi-card kpi-card-blue">
-                            <div class="kpi-icon-wrapper text-primary">
-                                <i class="fa-solid fa-dollar-sign"></i>
-                            </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #0369a1;">Total Revenue</div>
-                            <div class="fs-2 fw-bold text-dark" id="totalAmount">$0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="kpi-card kpi-card-green">
-                            <div class="kpi-icon-wrapper text-success">
-                                <i class="fa-solid fa-cart-shopping"></i>
-                            </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #15803d;">Total Orders</div>
-                            <div class="fs-2 fw-bold text-dark" id="totalRecords">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="kpi-card kpi-card-purple">
-                            <div class="kpi-icon-wrapper" style="color: #9333ea;">
-                                <i class="fa-solid fa-clock"></i>
-                            </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #7e22ce;">Total Hours</div>
-                            <div class="fs-2 fw-bold text-dark" id="totalHours">0 hrs</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="kpi-card kpi-card-amber">
-                            <div class="kpi-icon-wrapper text-warning">
-                                <i class="fa-solid fa-calculator"></i>
-                            </div>
-                            <div class="text-uppercase small fw-bold text-slate-600 mb-1" style="letter-spacing: 0.05em; color: #b45309;">Avg Hourly Rate</div>
-                            <div class="fs-2 fw-bold text-dark" id="avgRate">$0/hr</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- File Import Section -->
-                <div class="card panel-card mb-4 overflow-hidden">
-                    <div class="panel-header-blue d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-up text-info"></i> Data Ingestion & Sync
+                <!-- Upload Section -->
+                <div class="card panel-card mb-4">
+                    <div class="panel-header-slate d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-file-excel me-2 text-info"></i> Import Excel Data</span>
                     </div>
                     <div class="card-body p-4">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-md-9">
-                                <div class="file-upload-wrapper">
-                                    <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls, .csv">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="button" id="uploadBtn" class="btn btn-gradient-primary w-100">
-                                    <i class="fa-solid fa-upload me-2"></i>Upload File
-                                </button>
-                            </div>
-                        </div>
-                        <div id="uploadStatus"></div>
-                    </div>
-                </div>
-
-                <!-- Search & Filters Panel -->
-                <div class="card panel-card mb-4 overflow-hidden">
-                    <div class="panel-header-teal d-flex align-items-center justify-content-between">
-                        <span><i class="fa-solid fa-filter text-info me-2"></i> Quick Filters</span>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted fw-bold">Search Name</label>
-                                <input type="text" id="searchName" class="form-control" placeholder="Search by name...">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted fw-bold">Filter Email</label>
-                                <input type="text" id="searchEmail" class="form-control" placeholder="Search by email...">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted fw-bold">Select Month</label>
-                                <input type="text" id="searchMonth" class="form-control" placeholder="e.g. January">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" id="searchBtn" class="btn btn-dark w-100 rounded-3 border fw-semibold" style="padding: 10px;">
-                                    <i class="fa-solid fa-rotate-left me-1"></i> Reset
-                                </button>
-                            </div>
+                        <div class="upload-box" onclick="document.getElementById('excelFileInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up text-primary fs-2 mb-2"></i>
+                            <h6 class="fw-bold mb-1">Click to upload Excel File</h6>
+                            <p class="text-muted small mb-0">Supported formats: .xlsx, .xls, .csv</p>
+                            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileUpload(event)">
                         </div>
                     </div>
                 </div>
 
-                <!-- Table Container -->
-                <div class="card panel-card overflow-hidden">
-                    <div class="panel-header-blue d-flex align-items-center justify-content-between">
-                        <span><i class="fa-solid fa-table me-2"></i> Sales Records</span>
+                <!-- Detailed Records Table with Edit Capabilities -->
+                <div class="card panel-card overflow-hidden mb-5">
+                    <div class="panel-header-slate d-flex justify-content-between align-items-center">
+                        <span class="fs-6"><i class="fa-solid fa-table me-2 text-info"></i> Sales Detailed Records</span>
+                        <span class="badge bg-primary rounded-pill px-3 py-2" id="recordCountBadge">0 Records</span>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-custom align-middle">
+                        <table class="table table-custom align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th>Month</th>
@@ -365,13 +229,14 @@
                                     <th>Hours</th>
                                     <th>Amount</th>
                                     <th>Code</th>
+                                    <th class="text-center" style="width: 120px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="salesTableBody">
                                 <tr>
-                                    <td colspan="10" class="text-center py-5 text-muted">
+                                    <td colspan="11" class="text-center py-5 text-muted">
                                         <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
-                                        No Data Available
+                                        No sales records available. Please upload an Excel sheet.
                                     </td>
                                 </tr>
                             </tbody>
@@ -383,9 +248,194 @@
         </div>
     </div>
 
-    <!-- SheetJS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Custom JS logic -->
-    <script src="script.js"></script>
+    <!-- External SheetJS Script -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <script>
+    let globalSalesData = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadDataFromStorage();
+    });
+
+    // Helper function for flexible column key lookup
+    function getProp(obj, propName) {
+        if (!obj) return "";
+        const normalize = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
+        const normalizedProp = normalize(propName);
+        
+        const key = Object.keys(obj).find(k => normalize(k) === normalizedProp);
+        return key ? obj[key] : "";
+    }
+
+    function setProp(obj, propName, newValue) {
+        if (!obj) return;
+        const normalize = (str) => String(str).replace(/[\s_]/g, '').toLowerCase();
+        const normalizedProp = normalize(propName);
+        
+        const key = Object.keys(obj).find(k => normalize(k) === normalizedProp);
+        if (key) {
+            obj[key] = newValue;
+        } else {
+            obj[propName] = newValue;
+        }
+    }
+
+    function loadDataFromStorage() {
+        try {
+            const raw = localStorage.getItem("salesData");
+            if (raw) {
+                globalSalesData = JSON.parse(raw);
+                renderTable();
+            }
+        } catch(e) {
+            console.error("Error loading data:", e);
+        }
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            globalSalesData = XLSX.utils.sheet_to_json(worksheet);
+            localStorage.setItem("salesData", JSON.stringify(globalSalesData));
+            renderTable();
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById("salesTableBody");
+        const badge = document.getElementById("recordCountBadge");
+
+        if (!globalSalesData || globalSalesData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-5 text-muted"><i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>No sales records available. Upload an Excel sheet above.</td></tr>`;
+            badge.innerText = "0 Records";
+            return;
+        }
+
+        badge.innerText = `${globalSalesData.length} Records`;
+
+        let html = "";
+        globalSalesData.forEach((item, index) => {
+            const month = getProp(item, "month") || "-";
+            const project = getProp(item, "project name") || getProp(item, "project") || "-";
+            const email = getProp(item, "email id") || getProp(item, "email") || "-";
+            const name = getProp(item, "name") || getProp(item, "client name") || "-";
+            const source = getProp(item, "source") || "-";
+            const language = getProp(item, "language") || "-";
+            const rate = Number(getProp(item, "rate")) || 0;
+            const hours = Number(getProp(item, "hours")) || 0;
+            const amount = Number(getProp(item, "amount")) || (rate * hours);
+            const code = getProp(item, "project code") || getProp(item, "code") || "-";
+
+            html += `
+            <tr id="row-${index}">
+                <td class="fw-bold">${month}</td>
+                <td>${project}</td>
+                <td>${email}</td>
+                <td>${name}</td>
+                <td>${source}</td>
+                <td>${language}</td>
+                <td>$${rate}</td>
+                <td>${hours}</td>
+                <td class="text-success fw-bold">$${amount.toLocaleString()}</td>
+                <td><span class="badge bg-light text-dark border">${code}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2 fs-7" onclick="enableEdit(${index})">
+                        <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    function enableEdit(index) {
+        const item = globalSalesData[index];
+        const tr = document.getElementById(`row-${index}`);
+
+        const month = getProp(item, "month");
+        const project = getProp(item, "project name") || getProp(item, "project");
+        const email = getProp(item, "email id") || getProp(item, "email");
+        const name = getProp(item, "name") || getProp(item, "client name");
+        const source = getProp(item, "source");
+        const language = getProp(item, "language");
+        const rate = Number(getProp(item, "rate")) || 0;
+        const hours = Number(getProp(item, "hours")) || 0;
+        const amount = Number(getProp(item, "amount")) || (rate * hours);
+        const code = getProp(item, "project code") || getProp(item, "code");
+
+        tr.innerHTML = `
+            <td><input type="text" class="edit-input" id="edit-month-${index}" value="${month}"></td>
+            <td><input type="text" class="edit-input" id="edit-project-${index}" value="${project}"></td>
+            <td><input type="text" class="edit-input" id="edit-email-${index}" value="${email}"></td>
+            <td><input type="text" class="edit-input" id="edit-name-${index}" value="${name}"></td>
+            <td><input type="text" class="edit-input" id="edit-source-${index}" value="${source}"></td>
+            <td><input type="text" class="edit-input" id="edit-language-${index}" value="${language}"></td>
+            <td><input type="number" class="edit-input" id="edit-rate-${index}" value="${rate}" oninput="calcEditAmount(${index})"></td>
+            <td><input type="number" class="edit-input" id="edit-hours-${index}" value="${hours}" oninput="calcEditAmount(${index})"></td>
+            <td><input type="number" class="edit-input font-weight-bold" id="edit-amount-${index}" value="${amount}" readonly></td>
+            <td><input type="text" class="edit-input" id="edit-code-${index}" value="${code}"></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-success py-0 px-2 mb-1" onclick="saveEdit(${index})">
+                    <i class="fa-solid fa-check me-1"></i>Save
+                </button>
+                <button class="btn btn-sm btn-secondary py-0 px-2" onclick="renderTable()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancel
+                </button>
+            </td>
+        `;
+    }
+
+    function calcEditAmount(index) {
+        const rate = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
+        const hours = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
+        document.getElementById(`edit-amount-${index}`).value = rate * hours;
+    }
+
+    function saveEdit(index) {
+        const item = globalSalesData[index];
+
+        const newMonth = document.getElementById(`edit-month-${index}`).value;
+        const newProject = document.getElementById(`edit-project-${index}`).value;
+        const newEmail = document.getElementById(`edit-email-${index}`).value;
+        const newName = document.getElementById(`edit-name-${index}`).value;
+        const newSource = document.getElementById(`edit-source-${index}`).value;
+        const newLanguage = document.getElementById(`edit-language-${index}`).value;
+        const newRate = Number(document.getElementById(`edit-rate-${index}`).value) || 0;
+        const newHours = Number(document.getElementById(`edit-hours-${index}`).value) || 0;
+        const newAmount = Number(document.getElementById(`edit-amount-${index}`).value) || (newRate * newHours);
+        const newCode = document.getElementById(`edit-code-${index}`).value;
+
+        // Update properties
+        setProp(item, "month", newMonth);
+        setProp(item, "project name", newProject);
+        setProp(item, "email id", newEmail);
+        setProp(item, "name", newName);
+        setProp(item, "source", newSource);
+        setProp(item, "language", newLanguage);
+        setProp(item, "rate", newRate);
+        setProp(item, "hours", newHours);
+        setProp(item, "amount", newAmount);
+        setProp(item, "project code", newCode);
+
+        // Update global state and persistent local storage
+        globalSalesData[index] = item;
+        localStorage.setItem("salesData", JSON.stringify(globalSalesData));
+
+        // Re-render
+        renderTable();
+    }
+    </script>
+
 </body>
 </html>
